@@ -111,32 +111,55 @@ section{margin-block:38px; scroll-margin-top:72px}
 .sec-head .note{color:var(--ink3); font-size:12px; margin-left:auto; font-family:var(--mono)}
 .sec-sub{color:var(--ink2); font-size:13px; margin:-6px 0 14px; max-width:74ch}
 
-/* ---------- tiles ---------- */
-.kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(196px,1fr)); gap:10px}
-.tile{background:var(--surface); border:1px solid var(--border); border-radius:10px;
-  padding:13px 14px 12px; display:flex; flex-direction:column; gap:3px; min-width:0}
-.tile .k{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink3)}
-.tile .v{font-family:var(--mono); font-size:25px; font-weight:600; letter-spacing:-.03em; line-height:1.2}
-.tile .m{font-size:11.5px; color:var(--ink3); font-family:var(--mono); min-height:18px}
-.delta{font-family:var(--mono); font-weight:500; font-size:12px}
-.up{color:var(--c-up)} .down{color:var(--c-down)} .flat{color:var(--ink3)}
+/* ---------- 结论条 ---------- */
+.verdict{background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--accent);
+  border-radius:10px; padding:15px 18px 16px; margin-bottom:12px}
+.verdict .lead{font-size:16px; font-weight:600; line-height:1.55; letter-spacing:-.01em; text-wrap:balance}
+.verdict .lead em{font-style:normal; color:var(--accent)}
+.verdict .why{margin-top:7px; font-size:13px; color:var(--ink2); line-height:1.7; max-width:78ch}
+.verdict .why b{color:var(--ink); font-weight:600}
+.verdict.ok{border-left-color:var(--c-up)} .verdict.ok .lead em{color:var(--c-up)}
+.verdict.warn{border-left-color:var(--amber)} .verdict.warn .lead em{color:var(--amber)}
+.verdict.bad{border-left-color:var(--c-down)} .verdict.bad .lead em{color:var(--c-down)}
 
-/* risk meter */
-.risk-band{background:var(--surface); border:1px solid var(--border); border-radius:10px;
-  padding:14px 16px 15px; margin-bottom:10px; display:grid; gap:12px 24px; align-items:center;
-  grid-template-columns:minmax(118px,auto) minmax(190px,1fr) minmax(250px,1.35fr)}
-@media (max-width:860px){ .risk-band{grid-template-columns:1fr} }
-.risk-band .head{display:flex; align-items:baseline; gap:9px; flex-wrap:wrap}
-.risk-band .head b{font-family:var(--mono); font-size:28px; font-weight:600; letter-spacing:-.03em; line-height:1.1}
-.risk-band .head span{font-size:14.5px; font-weight:600; color:var(--ink2)}
-.meter{position:relative; height:9px; border-radius:999px; margin:9px 0 7px;
-  background:linear-gradient(90deg, var(--c-down-soft) 0%, var(--surface3) 45%, var(--surface3) 55%, var(--c-up-soft) 100%);
-  border:1px solid var(--border)}
-.meter i{position:absolute; top:-4px; width:3px; height:15px; border-radius:2px; background:var(--ink);
-  transform:translateX(-1.5px); transition:left .6s cubic-bezier(.2,.7,.3,1)}
-.meter-scale{display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; color:var(--ink3)}
-.meter-read{font-size:12.5px; color:var(--ink2); line-height:1.6}
-.meter-parts{display:flex; gap:4px 12px; flex-wrap:wrap; margin-top:7px; font-family:var(--mono); font-size:10.5px; color:var(--ink3)}
+/* ---------- 四层漏斗 ---------- */
+.funnel{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; align-items:stretch}
+@media (max-width:980px){ .funnel{grid-template-columns:repeat(2,1fr)} }
+@media (max-width:520px){ .funnel{grid-template-columns:1fr} }
+.step{position:relative; background:var(--surface); border:1px solid var(--border); border-radius:10px;
+  padding:13px 15px 14px; display:flex; flex-direction:column; gap:5px; min-width:0}
+.step::after{content:"→"; position:absolute; right:-12px; top:50%; transform:translateY(-50%);
+  font-family:var(--mono); font-size:13px; color:var(--ink3); z-index:1; line-height:1}
+.step:last-child::after{content:""}
+@media (max-width:980px){ .step:nth-child(2)::after{content:""} }
+@media (max-width:520px){ .step::after{content:""} }
+.step .hd{display:flex; align-items:center; gap:7px}
+.step .ord{font-family:var(--mono); font-size:10px; color:var(--ink3); letter-spacing:.1em}
+.step .nm{font-size:13.5px; font-weight:600}
+.step .badge{margin-left:auto; font-family:var(--mono); font-size:10px; padding:1.5px 7px; border-radius:3px; white-space:nowrap}
+.step .badge.ok{background:var(--c-up-soft); color:var(--c-up)}
+.step .badge.warn{background:var(--amber-soft); color:var(--amber)}
+.step .badge.bad{background:var(--c-down-soft); color:var(--c-down)}
+.step .badge.na{background:var(--surface3); color:var(--ink3)}
+.step .q{font-size:11.5px; color:var(--ink3); line-height:1.5}
+.step .fig{font-family:var(--mono); font-size:25px; font-weight:600; letter-spacing:-.03em; line-height:1.25; margin-top:2px}
+.step .sub{font-family:var(--mono); font-size:11px; color:var(--ink3); line-height:1.5; min-height:33px}
+.step .mean{font-size:12px; color:var(--ink2); line-height:1.62; margin-top:5px;
+  padding-top:8px; border-top:1px solid var(--border)}
+
+/* ---------- 指标释义 ---------- */
+.glossary{background:var(--surface); border:1px solid var(--border); border-radius:10px; margin-bottom:12px}
+.glossary summary{cursor:pointer; padding:11px 15px; font-size:12.5px; color:var(--ink2);
+  font-weight:500; list-style:none; display:flex; align-items:center; gap:7px}
+.glossary summary::-webkit-details-marker{display:none}
+.glossary summary::before{content:"▸"; font-family:var(--mono); color:var(--ink3); transition:transform .15s}
+.glossary[open] summary::before{transform:rotate(90deg)}
+.glossary summary:hover{color:var(--ink)}
+.gl-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(255px,1fr)); gap:11px 20px;
+  padding:2px 15px 15px; border-top:1px solid var(--border); margin-top:0; padding-top:13px}
+.gl-grid div{display:flex; flex-direction:column; gap:2px; min-width:0}
+.gl-grid b{font-family:var(--mono); font-size:11.5px; color:var(--accent); font-weight:600}
+.gl-grid span{font-size:12px; color:var(--ink2); line-height:1.62}
 
 /* ---------- charts ---------- */
 .charts{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:10px}
@@ -207,12 +230,25 @@ tr.detail td{padding:0; border-bottom:1px solid var(--border); background:var(--
 .take{font-size:13.5px; line-height:1.72; margin:0}
 .take em{font-style:normal; background:var(--accent-soft); color:var(--accent); padding:0 4px; border-radius:3px; font-family:var(--mono); font-size:12.5px}
 .subs{display:grid; gap:7px}
-.sub{display:grid; grid-template-columns:62px 1fr 38px; align-items:center; gap:9px;
-  font-family:var(--mono); font-size:11px; color:var(--ink2)}
-.sub .track{height:6px; border-radius:3px; background:var(--surface3); overflow:hidden}
-.sub .track i{display:block; height:100%; background:var(--accent); border-radius:3px}
 .kv{display:flex; flex-wrap:wrap; gap:4px 16px; font-family:var(--mono); font-size:11px; color:var(--ink3); margin-top:10px}
 .kv b{color:var(--ink2); font-weight:500}
+
+/* ---------- 因果链断点 ---------- */
+.chain{display:grid; gap:1px; background:var(--border); border:1px solid var(--border); border-radius:7px; overflow:hidden}
+.clink{display:grid; grid-template-columns:20px 26px 1fr auto auto; align-items:center; gap:9px;
+  background:var(--surface); padding:7px 10px; font-size:12px}
+.cmark{width:17px; height:17px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-family:var(--mono); font-size:10px; font-weight:600}
+.cmark.ok{background:var(--c-up-soft); color:var(--c-up)}
+.cmark.warn{background:var(--amber-soft); color:var(--amber)}
+.cmark.bad{background:var(--c-down-soft); color:var(--c-down)}
+.cmark.na{background:var(--surface3); color:var(--ink3)}
+.cname{font-weight:600; font-size:12.5px}
+.cq{color:var(--ink3); font-size:11.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.cval{font-family:var(--mono); font-size:12px; font-weight:500}
+.cval.ok{color:var(--c-up)} .cval.bad{color:var(--c-down)} .cval.warn{color:var(--amber)} .cval.na{color:var(--ink3)}
+.cu{font-family:var(--mono); font-size:10px; color:var(--ink3); min-width:52px; text-align:right}
+@media (max-width:520px){ .clink{grid-template-columns:20px 26px 1fr auto} .cu{display:none} }
 
 /* ---------- flow bars ---------- */
 .flows{display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:10px}
@@ -288,34 +324,41 @@ footer a{color:var(--ink2)}
 
 <div class="wrap">
   <header class="mast">
-    <h1>别人看价格，我们看现金流和资金流向</h1>
-    <p>一张为老玩家做的 DeFi 研究台：实时拉取链上 TVL、协议费用与收入、稳定币供给、DEX 量能与收益池数据，按「动量 / 现金流 / 估值 / 健康度」四个维度打分，把靠补贴堆出来的假增长和真有交易量支撑的趋势标的分开。</p>
+    <h1>先看这条链断在哪一层</h1>
+    <p>DeFi 的因果链只有四层：<strong>钱进来 → 钱在周转 → 周转产生收入 → 收入值多少钱</strong>。
+      绝大多数误判，都是拿第一层的数字（TVL 涨了）去支撑第四层的结论（所以该买）。
+      这张研究台实时拉取 DefiLlama 数据，把每一层压缩成一个指标，标出它成立还是断裂，再由断点推出当下该怎么打。</p>
     <div class="rail">
       <span class="tag">数据源 DefiLlama 公开 API</span>
       <span class="tag">浏览器直连 · 不经任何中间服务器</span>
+      <span class="tag">核心指标 剪刀差 = 费用增速 − TVL 增速</span>
       <span class="tag">默认 5 分钟自动刷新</span>
       <span class="tag">非投资建议</span>
     </div>
   </header>
 
-  <section id="pulse">
+  <section id="funnel">
     <div class="sec-head">
-      <span class="eyebrow">01 / 体温</span>
-      <h2>市场体温</h2>
-      <span class="note" id="pulseNote">—</span>
+      <span class="eyebrow">01 / 主线</span>
+      <h2>钱 → 用 → 赚 → 值</h2>
+      <span class="note" id="funnelNote">—</span>
     </div>
-    <p class="sec-sub">先看水位再看牌。TVL 决定舞台大小，稳定币供给决定场内还有多少子弹，费用和 DEX 量能决定这些钱有没有在真干活。</p>
-    <div class="risk-band" id="riskBand"></div>
-    <div class="kpis" id="kpis"></div>
+    <p class="sec-sub">DeFi 的因果链只有四层，每层一个指标。<strong>上一层不成立，下一层就是空中楼阁</strong>：
+      没有新钱进场，再高的收益也是存量博弈；钱不周转，TVL 只是躺着的数字；有周转没收入，那是在补贴用户；
+      有收入但估值透支，好生意也会亏钱。下面这条链断在哪一层，就决定了现在该怎么打。</p>
+    <div class="verdict" id="verdict"></div>
+    <div class="funnel" id="funnelSteps"></div>
   </section>
 
   <section id="curves">
     <div class="sec-head">
-      <span class="eyebrow">02 / 曲线</span>
+      <span class="eyebrow">02 / 背离</span>
       <h2>水位与弹药</h2>
       <span class="note">近 120 天 · 每日快照</span>
     </div>
-    <p class="sec-sub">两条线分开看：TVL 会随币价被动涨跌，稳定币供给不会——它是实打实的资金进出。两者背离的时候，通常是行情的转折点。</p>
+    <p class="sec-sub">这两条线对应第一层。<strong>分开画是有意的</strong>：TVL 以美元计价，币价涨它就涨，所以它混合了「价格」和「资金」两件事；
+      稳定币供给不受币价影响，是干净的资金进出信号。当 TVL 上行而稳定币走平甚至收缩，涨的就是价格不是资金——
+      这种背离是行情转折前最常见的形态。</p>
     <div class="charts">
       <div class="chart-card">
         <header><h3>全网 TVL</h3><span class="val num" id="tvlNow">—</span></header>
@@ -336,7 +379,20 @@ footer a{color:var(--ink2)}
       <h2>趋势雷达</h2>
       <span class="note" id="radarNote">—</span>
     </div>
-    <p class="sec-sub">点任意一行展开：会给出这个协议的四项细分得分和一句人话点评。<strong>综合分只是排序工具，不是买入信号</strong>——真正要看的是「TVL 在涨的同时，费用有没有跟着涨」。</p>
+    <p class="sec-sub">同一条因果链，落到单个协议上。核心只有一个数：<strong>剪刀差 = 费用增速 − TVL 增速</strong>。
+      它为正，说明存量资金的效率在提升；为负，说明增长靠的是不断堆新钱进来，而不是用的人变多了。
+      点任意一行展开，会定位这个协议断在哪一层。</p>
+    <details class="glossary">
+      <summary>指标释义：这几个数分别在回答什么问题</summary>
+      <div class="gl-grid">
+        <div><b>TVL / 7日</b><span>规模与短期动量。TVL 以美元计价，币价涨它就涨，所以它只回答「盘子多大」，不回答「有没有人用」。</span></div>
+        <div><b>年化费率</b><span>30日费用 × 12.17 ÷ TVL。每 1 美元锁仓一年能产生多少手续费，衡量资金效率。低于 0.5% 基本等于钱在躺着。</span></div>
+        <div><b>费用 30日</b><span>用户实际付出的钱的增速。TVL 和交易量都能刷，费用刷不动——刷费用等于真金白银烧钱。</span></div>
+        <div><b>剪刀差</b><span>费用增速减 TVL 增速，单位是百分点。正 = 提效，负 = 摊薄。这是全表最该先看的一列。</span></div>
+        <div><b>P/F</b><span>市值 ÷ 年化费用，即协议的市盈率。同样赚 1 块钱，P/F 10x 和 80x 差的是你要等多少年回本。</span></div>
+        <div><b>诊断</b><span>由上面几项推出的单一结论，不是标签堆砌。展开行会给出推理过程和它断在因果链的哪一层。</span></div>
+      </div>
+    </details>
     <div class="controls">
       <div class="tabs" role="tablist" aria-label="榜单视角" id="presets"></div>
       <input type="search" class="field" id="q" placeholder="搜索协议…" aria-label="搜索协议" style="width:150px">
@@ -379,27 +435,9 @@ footer a{color:var(--ink2)}
     </div>
   </section>
 
-  <section id="cash">
-    <div class="sec-head">
-      <span class="eyebrow">05 / 现金流</span>
-      <h2>真实现金流榜</h2>
-      <span class="note">近 30 日费用 · 含增速与估值倍数</span>
-    </div>
-    <p class="sec-sub">费用是用户真金白银付的，代币排放不是。这张表回答两个问题：谁在赚钱，以及这份赚钱能力值不值现在的市值（P/F = 市值 ÷ 年化费用）。</p>
-    <div class="tbl-wrap">
-      <table id="cashTable">
-        <thead><tr>
-          <th class="l">协议</th><th>30日费用</th><th>7日费用</th><th>24h</th>
-          <th>费用 30日变化</th><th>协议留存率</th><th>年化费率/TVL</th><th>P/F</th>
-        </tr></thead>
-        <tbody id="cashBody"></tbody>
-      </table>
-    </div>
-  </section>
-
   <section id="yield">
     <div class="sec-head">
-      <span class="eyebrow">06 / 收益</span>
+      <span class="eyebrow">05 / 收益</span>
       <h2>收益机会台</h2>
       <span class="note" id="yieldNote">按需加载 · 数据包较大</span>
     </div>
@@ -414,49 +452,50 @@ footer a{color:var(--ink2)}
 
   <section id="method">
     <div class="sec-head">
-      <span class="eyebrow">07 / 方法</span>
+      <span class="eyebrow">06 / 方法</span>
       <h2>怎么读这些数字</h2>
     </div>
     <p class="sec-sub">下面是这个页面的全部计算口径，以及我这些年踩过的坑。看不懂指标就别下注——这是最便宜的风控。</p>
     <div class="notebook">
       <div class="card">
-        <h3><span class="idx">评分</span>综合分怎么来的</h3>
-        <p>四个分项各自归一化到 0–100（用 <code>tanh</code> 做饱和处理，避免极端值霸榜），再按当前榜单视角加权。缺失的分项不补零，而是把权重按比例分给其余项——没有费用数据不等于没有收入。</p>
+        <h3><span class="idx">核心</span>为什么先看剪刀差</h3>
+        <p><strong>剪刀差 = 费用 30 日增速 − TVL 30 日增速</strong>，单位是百分点。它把两个都能被操纵的数字相减，
+          得到一个难被操纵的结论。</p>
+        <p>TVL 可以靠激励堆、靠币价涨、靠同一笔钱在多个协议里重复计算；交易量可以靠洗量刷。
+          但<strong>费用是用户真金白银付出去的</strong>——刷费用等于自己烧钱，规模一大就烧不起。</p>
+        <p>所以：剪刀差为正，说明每 1 美元锁仓赚到的钱在变多，增长来自「用的人更多」；
+          为负，说明规模扩张快过收入，增长来自「堆进来的钱更多」，单位资金的赚钱能力正在被稀释。
+          <strong>前者可以外推，后者一旦停止流入就会回吐。</strong></p>
+      </div>
+      <div class="card">
+        <h3><span class="idx">链条</span>每一层断掉分别意味着什么</h3>
         <ul>
-          <li><strong>动量</strong>：7 日与 30 日 TVL 变化，7 日权重更高</li>
-          <li><strong>现金流</strong>：年化费率（30 日费用 ×12.17 ÷ TVL）＋ 费用 30 日增速</li>
-          <li><strong>估值</strong>：市值/TVL 与 P/F，越低分越高；未发币不计分</li>
-          <li><strong>健康度</strong>：TVL 体量、多链分散度、是否存在增长与收入背离</li>
+          <li><strong>第一层「钱」断</strong>（稳定币收缩）→ 后面三层再好也是存量博弈，同一批钱轮动而已。<em>对策：降弹性，收缩到现金流蓝筹。</em></li>
+          <li><strong>第二层「用」断</strong>（周转率下滑）→ 钱停在池子里等激励，没变成链上活动。<em>对策：按补贴周期交易，不按趋势外推。</em></li>
+          <li><strong>第三层「赚」断</strong>（剪刀差为负）→ 新增资金是不付费的那部分。<em>对策：放弃板块 Beta，只挑剪刀差为正的个体。</em></li>
+          <li><strong>第四层「值」断</strong>（P/F 过高）→ 基本面成立但已被定价。<em>对策：去找还没被重估的二线，而不是追龙头。</em></li>
         </ul>
+        <p>顺序不能颠倒：<strong>下层的结论必须以上层成立为前提</strong>。这就是为什么单看一个 TVL 排行榜没有意义。</p>
       </div>
       <div class="card">
         <h3><span class="idx">陷阱</span>TVL 会骗人的四种方式</h3>
         <ul>
-          <li><strong>重复计算</strong>：ETH 存进 LST 再存进借贷再进 LP，一份钱在三处 TVL 里各算一次</li>
-          <li><strong>币价幻觉</strong>：TVL 用美元计价，币价涨 30% 时 TVL 自动涨 30%，一个新用户都没有</li>
-          <li><strong>雇佣资本</strong>：高排放吸引来的 TVL，减产公告当天就能跑掉一半</li>
-          <li><strong>自有资金</strong>：项目方国库、做市商回购的仓位也算 TVL，那不是市场需求</li>
+          <li><strong>重复计算</strong>：ETH 存进 LST，再存进借贷，再进 LP，一份钱在三处 TVL 里各算一次</li>
+          <li><strong>币价幻觉</strong>：TVL 以美元计价，币价涨 30% 它就涨 30%，一个新用户都没有</li>
+          <li><strong>雇佣资本</strong>：高排放吸来的钱，减产公告当天就能跑掉一半</li>
+          <li><strong>自有资金</strong>：项目方国库和做市商仓位也算 TVL，那不是市场需求</li>
         </ul>
-        <p>所以本页把「TVL 涨但费用不涨」单独标成 <span class="chip r">补贴空转</span>，这是最值钱的一个标签。</p>
+        <p>这四种失真都有一个共同点：<strong>它们抬得起 TVL，抬不起费用</strong>。所以它们全都会在剪刀差上暴露。</p>
       </div>
       <div class="card">
-        <h3><span class="idx">尽调</span>下注前的七个问题</h3>
+        <h3><span class="idx">局限</span>这些数字的边界在哪</h3>
         <ul>
-          <li>收入来自谁？用户手续费，还是代币排放左手倒右手</li>
-          <li>协议自己留存多少？<code>收入 ÷ 费用</code> 低于 10% 说明钱都给了 LP</li>
-          <li>解锁表在哪？未来 6 个月的释放量是流通量的百分之几</li>
-          <li>TVL 集中在几个地址？前十大占比超过 50% 就是随时能走的钱</li>
-          <li>依赖哪个预言机和跨链桥？这是 DeFi 最常见的爆点</li>
-          <li>合约改过几次？升级权限在多签还是单私钥手里</li>
-          <li>最坏情况我能承受吗？仓位大小永远比标的选择更决定生死</li>
+          <li><strong>阈值是经验值不是定律</strong>：P/F 20x / 45x、剪刀差 ±2pp 这些分界来自经验区间，不同周期该平移，别当硬标准</li>
+          <li><strong>费用口径会错配</strong>：部分协议按母协议归集（多版本合计），表内标 <code>≈</code>，这类比率只能横向参考</li>
+          <li><strong>覆盖不等于全部</strong>：没有费用适配器的协议第三层无法验证，页面标成「收入未覆盖」而不是给它补零</li>
+          <li><strong>链上数据看不到的</strong>：解锁表、代币集中度、合约升级权限、预言机与跨链桥依赖——这些才是归零风险的主要来源，全都不在这张表里</li>
         </ul>
-      </div>
-      <div class="card">
-        <h3><span class="idx">节奏</span>什么时候该看什么</h3>
-        <p><strong>稳定币在增发</strong>：新钱进场，先看高 Beta 的新协议和激励活动，这是攻的时候。</p>
-        <p><strong>稳定币在收缩、TVL 却在涨</strong>：币价拉动的虚胖，此时追高最危险，该往稳定币收益和蓝筹现金流上退。</p>
-        <p><strong>费用增速跑赢 TVL 增速</strong>：存量资金效率在提升，是最健康的一种上涨，也是最容易被忽略的买点。</p>
-        <p><strong>DEX 7 日均量低于 30 日均量</strong>：量能在萎缩，任何「TVL 创新高」的叙事都要打折。</p>
+        <p>所以这张表能回答「值不值得研究」，<strong>回答不了「能不能买」</strong>。后半程得你自己做。</p>
       </div>
     </div>
   </section>
@@ -548,6 +587,23 @@ function norm(s){ return String(s == null ? "" : s).toLowerCase()
   .replace(/[\s._'’\-]/g, "").replace(/finance$|protocol$/, ""); }
 function baseName(s){ return norm(s).replace(/v\d+(\.\d+)?$/, ""); }
 
+/* 增速口径：change_1m 缺失时降级为「近7日日均 vs 近30日日均」，返回值与口径标记 */
+function growthOf(total){
+  if (!total) return { v: null, mode: null };
+  var c = num(total.change_1m);
+  if (c !== null && isFinite(c)) return { v: c, mode: "30d" };
+  var t7 = num(total.total7d), t30 = num(total.total30d);
+  if (t7 !== null && t30 !== null && t30 > 0) return { v: ((t7 / 7) / (t30 / 30) - 1) * 100, mode: "7v30" };
+  return { v: null, mode: null };
+}
+/* 序列的近 a 日均值相对近 b 日均值的偏离 % */
+function seriesRatio(ser, a, b){
+  if (!ser || ser.length < b) return null;
+  var avg = function(n){ var t = 0, i; for (i = ser.length - n; i < ser.length; i++) t += ser[i].v; return t / n; };
+  var x = avg(a), y = avg(b);
+  return (y > 0) ? (x / y - 1) * 100 : null;
+}
+
 /* 归一化打分：tanh 饱和，避免极端值霸榜 */
 function scSigned(x, ref){ var n = num(x); if (n === null) return null;
   return 50 + 50 * Math.tanh(n / ref); }
@@ -579,7 +635,7 @@ var store = {
 /* ---------- 全局状态 ---------- */
 var S = {
   protos: [], chains: [], cats: [], tvlSeries: [], stableSeries: [],
-  kpi: {}, pools: null, poolsLoading: false,
+  core: null, pools: null, poolsLoading: false,
   updatedAt: null, errors: [], loading: false,
   sortKey: "score", sortDir: -1, preset: "alpha", openRow: null,
   watch: store.get("watch", []), yieldTab: "stable", expanded: {},
@@ -740,6 +796,14 @@ function enrich(protos, feeIdx, revIdx, dexIdx){
     p.retention= (p.rev30 !== null && p.fees30 !== null && p.fees30 > 0) ? p.rev30 / p.fees30 * 100 : null;
     p.volTvl   = (p.vol30 !== null && p.tvl > 0) ? p.vol30 / MONTH_DAYS / p.tvl : null;
     p.fresh    = p.listedAt !== null && (Date.now() / 1000 - p.listedAt) < 200 * 86400;
+    /* 剪刀差：费用增速 − TVL 增速（百分点）。正 = 存量资金提效，负 = 靠堆钱摊薄 */
+    if (p.feeD30 !== null && p.d30 !== null){
+      p.scissors = p.feeD30 - p.d30; p.scissorsMode = "30d";
+    } else if (p.fees7 !== null && p.fees30 !== null && p.fees30 > 0 && p.d7 !== null && p.d30 !== null){
+      /* 降级口径：双方都改用「近期相对月度基准的加速度」，仍是同向可比的差值 */
+      p.scissors = ((p.fees7 / 7) / (p.fees30 / 30) - 1) * 100 - (p.d7 - p.d30 * 7 / 30);
+      p.scissorsMode = "accel";
+    } else { p.scissors = null; p.scissorsMode = null; }
     score(p);
   }
   return protos;
@@ -749,14 +813,14 @@ function score(p){
   /* 动量 */
   p.sM = wavg([[scSigned(p.d7, 22), 0.62], [scSigned(p.d30, 55), 0.38]]);
   /* 现金流质量 */
-  p.sR = wavg([[scPos(p.feeApr, 14), 0.55], [scSigned(p.feeD30, 60), 0.30],
-               [scPos(p.retention, 45), 0.15]]);
+  p.sR = wavg([[scPos(p.feeApr, 14), 0.40], [scSigned(p.scissors, 35), 0.35],
+               [scSigned(p.feeD30, 60), 0.12], [scPos(p.retention, 45), 0.13]]);
   /* 估值（未发币或无费用数据时该项缺失，不补零） */
   p.sV = wavg([[scInv(p.mcapTvl, 2.0), 0.5], [scInv(p.pf, 28), 0.5]]);
   /* 背离：TVL 猛涨但费用没跟上 —— 最值钱的一个信号 */
-  p.divergent = (p.d7 !== null && p.d7 > 15) &&
-    ((p.feeD7 !== null && p.feeD7 < 0) || (p.feeApr !== null && p.feeApr < 0.6));
-  p.converged = (p.d7 !== null && p.d7 > 8) && (p.feeD7 !== null && p.feeD7 > 8);
+  p.divergent = (p.d30 !== null && p.d30 > 12) &&
+    ((p.scissors !== null && p.scissors < -15) || (p.feeApr !== null && p.feeApr < 0.5));
+  p.converged = (p.d30 !== null && p.d30 > 5) && (p.scissors !== null && p.scissors > 2);
   /* 健康度 */
   var h = 70, nc = p.chains.length;
   if (p.tvl > 1e9) h += 13; else if (p.tvl > 2e8) h += 9; else if (p.tvl > 5e7) h += 5;
@@ -769,8 +833,49 @@ function score(p){
   if (p.d1 !== null && Math.abs(p.d1) > 55) h -= 12;
   if (p.d30 !== null && p.d30 < -35) h -= 8;
   p.sH = clamp(h, 0, 100);
+  p.diag = diagnose(p);
   p.tags = tagsOf(p);
   p.take = takeOf(p);
+}
+
+/* 把因果链落到单个协议：每层给一个判定，返回第一个断点 */
+function chainOf(p){
+  var g = function(v, ok, bad, na){
+    if (v === null || v === undefined) return na || "na";
+    return v >= ok ? "ok" : (v <= bad ? "bad" : "warn");
+  };
+  return [
+    { n:"钱", q:"资金还在流入吗", k:g(p.d30, 2, -2),
+      v: p.d30 === null ? "—" : (p.d30 > 0 ? "+" : "") + p.d30.toFixed(1) + "%", u:"TVL 30日" },
+    { n:"用", q:"这些钱在干活吗", k:g(p.feeApr, 3, 0.5),
+      v: p.feeApr === null ? "—" : (p.feeApr >= 1000 ? "存疑" : p.feeApr.toFixed(2) + "%"), u:"年化费率" },
+    { n:"赚", q:"收入跑赢规模了吗", k:g(p.scissors, 2, -2),
+      v: p.scissors === null ? "—" : (p.scissors > 0 ? "+" : "") + p.scissors.toFixed(1) + "pp", u:"剪刀差" },
+    { n:"值", q:"价格是否已透支", k:(p.pf === null ? "na" : (p.pf <= 20 ? "ok" : (p.pf > 45 ? "bad" : "warn"))),
+      v: p.pf === null ? "—" : fmtX(p.pf), u:"P/F" }
+  ];
+}
+
+/* 单一诊断，取代原先的标签堆砌 */
+function diagnose(p){
+  var d30 = p.d30, apr = p.feeApr, sc = p.scissors;
+  if (apr === null)
+    return { k:"n", s:"收入未覆盖", layer:1 };
+  if (d30 !== null && d30 > 12 && (apr < 0.5 || (sc !== null && sc < -15)))
+    return { k:"r", s:"补贴空转", layer:2 };
+  if (d30 !== null && d30 < -12 && p.feeD30 !== null && p.feeD30 < -12)
+    return { k:"r", s:"资金与收入双杀", layer:0 };
+  if (d30 !== null && d30 < -4 && sc !== null && sc > 8)
+    return { k:"g", s:"缩表提效", layer:-1 };
+  if (d30 !== null && d30 > 4 && sc !== null && sc > 2)
+    return { k:"g", s:"真实增长", layer:-1 };
+  if (d30 !== null && d30 > 4 && sc !== null && sc < -2)
+    return { k:"a", s:"摊薄增长", layer:2 };
+  if (apr >= 15 && apr < 1000)
+    return { k:"g", s:"现金流稳定", layer:-1 };
+  if (apr < 1)
+    return { k:"a", s:"资金低效", layer:1 };
+  return { k:"n", s:"横盘", layer:-1 };
 }
 
 var PRESETS = [
@@ -780,8 +885,6 @@ var PRESETS = [
     hint:"以费用收入和留存率为主，看谁真的在赚钱而不是发币" },
   { id:"early",  name:"早期爆发", w:{M:.50,R:.24,V:.10,H:.16},
     hint:"限定 TVL $10M–$600M 且市值不高，找还没被定价的增量" },
-  { id:"value",  name:"估值折价", w:{M:.14,R:.30,V:.46,H:.10},
-    hint:"市值/TVL 与 P/F 双低，老钱喜欢的位置" },
   { id:"drain",  name:"资金外逃", w:{M:.34,R:.28,V:.20,H:.18},
     hint:"按 7 日 TVL 跌幅排序，反向观察：谁在被抛弃，为什么" }
 ];
@@ -803,57 +906,70 @@ function composite(p, preset){
 }
 
 function tagsOf(p){
-  var t = [];
-  if (p.converged) t.push({ k:"g", s:"真实增长" });
-  if (p.divergent) t.push({ k:"r", s:"补贴空转" });
-  if (p.feeApr !== null && p.feeApr >= 25) t.push({ k:"g", s:"现金流强" });
-  if (p.mcapTvl !== null && p.mcapTvl <= 0.6 && p.fees30 !== null) t.push({ k:"b", s:"估值折价" });
-  if (p.mcapTvl !== null && p.mcapTvl >= 6) t.push({ k:"a", s:"估值透支" });
-  if (p.mcap === null && p.tvl > 5e7) t.push({ k:"b", s:"未发币" });
-  if (p.d30 !== null && p.d30 <= -25) t.push({ k:"r", s:"资金流出" });
-  if (p.fresh) t.push({ k:"n", s:"新协议" });
-  if (p.chains.length === 1) t.push({ k:"n", s:"单链" });
-  if (p.retention !== null && p.retention < 8) t.push({ k:"a", s:"留存低" });
-  return t.slice(0, 4);
+  var t = [], d = p.diag;
+  t.push({ k:d.k, s:d.s });
+  if (p.pf !== null && p.pf > 45) t.push({ k:"a", s:"P/F 偏贵" });
+  else if (p.pf !== null && p.pf < 12) t.push({ k:"b", s:"P/F 便宜" });
+  else if (p.mcap === null && p.tvl > 5e7) t.push({ k:"b", s:"未发币" });
+  if (p.retention !== null && p.retention < 8) t.push({ k:"n", s:"收入归 LP" });
+  return t.slice(0, 3);
 }
 
-/* 一句话点评：用真实数字拼，不说空话 */
+/* 点评：先说断在哪一层，再说机制，最后给推论 */
 function takeOf(p){
-  var n = function(v, d){ return '<em>' + (v === null ? "—" : (v > 0 && d !== 0 ? "+" : "") + num(v).toFixed(d == null ? 1 : d) + "%") + '</em>'; };
-  var money = function(v){ return '<em>' + fmtUsd(v) + '</em>'; };
-  var s = [];
-  if (p.divergent){
-    s.push("7 日 TVL " + n(p.d7) + "，但同期费用" +
-      (p.feeD7 !== null ? "变化 " + n(p.feeD7) : "几乎没有起色") +
-      "，年化费率只有 " + n(p.feeApr) + "——典型的激励堆量，补贴停了 TVL 大概率原路返回。");
-  } else if (p.converged){
-    s.push("7 日 TVL " + n(p.d7) + " 且费用同步 " + n(p.feeD7) +
-      "，增长有真实使用量托底，不是刷出来的。");
-  } else if (p.d7 !== null && p.d7 < -15){
-    s.push("7 日 TVL " + n(p.d7) + "，30 日 " + n(p.d30) + "，资金在撤。" +
-      (p.feeApr !== null && p.feeApr > 10 ? "但费率仍有 " + n(p.feeApr) + "，可能是价格下跌而非用户流失，值得分辨。"
-       : "先确认是行情普跌还是协议本身出了问题。"));
-  } else if (p.d7 !== null && p.d7 > 5){
-    s.push("7 日 TVL " + n(p.d7) + "，" + (p.feeApr !== null ? "年化费率 " + n(p.feeApr) + "，" : "") + "属于温和流入。");
+  var pct = function(v, d){ return v === null ? "—" : (v > 0 ? "+" : "") + num(v).toFixed(d == null ? 1 : d) + "%"; };
+  var pp  = function(v){ return v === null ? "—" : (v > 0 ? "+" : "") + num(v).toFixed(1) + "pp"; };
+  var E   = function(x){ return "<em>" + x + "</em>"; };
+  var d = p.diag, s = [];
+
+  if (d.s === "收入未覆盖"){
+    s.push("TVL 30日 " + E(pct(p.d30)) + "，但 DefiLlama 还没有收录这个协议的费用适配器，" +
+      "因果链的第三层无法验证——只看得到钱进来了，看不到有没有产生收入。");
+    s.push("<b>推论</b>：在补上收入数据之前，它的 TVL 涨跌不支撑任何结论，只能当观察标的而不是决策标的。");
+  } else if (d.s === "补贴空转"){
+    s.push("30日 TVL " + E(pct(p.d30)) + "，同期费用 " + E(pct(p.feeD30)) + "，剪刀差 " + E(pp(p.scissors)) +
+      "；年化费率仅 " + E(pct(p.feeApr, 2)) + "，即每 1 美元锁仓一整年只贡献这么点手续费。");
+    s.push("<b>推论</b>：这批钱是冲激励来的雇佣资本，排放一降就走。不能按增长定价，" +
+      "要参与只能按「补贴还能发多久」来定退出时点。");
+  } else if (d.s === "资金与收入双杀"){
+    s.push("30日 TVL " + E(pct(p.d30)) + "，费用 " + E(pct(p.feeD30)) + "——资金和收入同向下滑，不是估值问题而是需求问题。");
+    s.push("<b>推论</b>：先分清是行业普跌还是份额被抢。若同赛道其他协议剪刀差为正，" +
+      "那就是份额流失，这种下跌不会因为便宜而停止。");
+  } else if (d.s === "缩表提效"){
+    s.push("TVL 30日 " + E(pct(p.d30)) + "，费用却是 " + E(pct(p.feeD30)) + "，剪刀差 " + E(pp(p.scissors)) +
+      "——撤走的是套利与挖矿资金，留下来的在真实使用。");
+    s.push("<b>推论</b>：这是熊市里最被低估的形态，规模在缩但资金效率在升。" +
+      (p.pf !== null ? "当前 P/F " + E(fmtX(p.pf)) + "，若价格同步被砸下来，通常是更好的位置。"
+                     : "缺市值数据，无法判断价格是否已同步下杀。"));
+  } else if (d.s === "真实增长"){
+    s.push("30日 TVL " + E(pct(p.d30)) + "，费用 " + E(pct(p.feeD30)) + "，剪刀差 " + E(pp(p.scissors)) +
+      "——收入跑在规模前面，新增的钱确实在被使用，而不是躺着等激励。");
+    s.push("<b>推论</b>：这种增长可以向后外推一段，判断重心应从「会不会涨」转到「是否已被定价」：" +
+      (p.pf !== null ? "当前 P/F " + E(fmtX(p.pf)) + "。" : "但它还没有可用的市值数据。"));
+  } else if (d.s === "摊薄增长"){
+    s.push("30日 TVL " + E(pct(p.d30)) + "，费用只有 " + E(pct(p.feeD30)) + "，剪刀差 " + E(pp(p.scissors)) +
+      "——规模在扩，但收入没跟上同样的比例，新进来的钱是不付费的那部分。");
+    s.push("<b>推论</b>：单位资金的赚钱能力在被稀释。这类标的的上涨依赖持续有新钱进场，" +
+      "一旦流入停下，估值和 TVL 会一起回落。");
+  } else if (d.s === "现金流稳定"){
+    s.push("TVL 近一个月基本走平（" + E(pct(p.d30)) + "），但年化费率维持在 " + E(pct(p.feeApr, 1)) +
+      "，属于不靠叙事、靠存量资金稳定收租的类型。");
+    s.push("<b>推论</b>：这类协议的风险回报由价格决定而不是由增长决定——" +
+      (p.pf !== null ? "P/F " + E(fmtX(p.pf)) + "，贵就等，便宜就是仓位底仓。" : "缺少市值数据，无法给出定价判断。"));
+  } else if (d.s === "资金低效"){
+    s.push("年化费率只有 " + E(pct(p.feeApr, 2)) + "，" + E(fmtUsd(p.tvl)) +
+      " 的锁仓几乎不产生手续费，钱是躺在合约里的。");
+    s.push("<b>推论</b>：这种 TVL 的质量很低，容易一次性撤离。除非它的价值捕获不在费用上（比如纯质押或积分预期），" +
+      "否则规模数字本身没有意义。");
   } else {
-    s.push("TVL 近一周基本走平（" + n(p.d7) + "），" + (p.d30 !== null ? "一个月维度 " + n(p.d30) + "。" : "缺少月度对比数据。"));
-  }
-  if (p.mcapTvl !== null){
-    if (p.mcapTvl <= 0.6) s.push("市值仅为 TVL 的 <em>" + p.mcapTvl.toFixed(2) + "x</em>" +
-      (p.pf !== null ? "、P/F <em>" + p.pf.toFixed(1) + "x</em>" : "") + "，在同体量里偏便宜。");
-    else if (p.mcapTvl >= 6) s.push("市值是 TVL 的 <em>" + p.mcapTvl.toFixed(1) + "x</em>" +
-      (p.pf !== null ? "、P/F <em>" + p.pf.toFixed(0) + "x</em>" : "") + "，估值已经把未来几年的增长提前吃掉了。");
-    else if (p.pf !== null) s.push("P/F <em>" + p.pf.toFixed(1) + "x</em>，估值处在中性区间。");
-  } else if (p.tvl > 5e7){
-    s.push("尚未发现代币市值数据，" + money(p.tvl) + " 的体量若确实未发币，本身就是一条积分 / 空投线索。");
+    s.push("TVL 30日 " + E(pct(p.d30)) + "，费用 " + E(pct(p.feeD30)) + "，剪刀差 " + E(pp(p.scissors)) +
+      "，四层链条上没有明显断点也没有明显亮点。");
+    s.push("<b>推论</b>：属于跟踪而非行动的对象，等剪刀差转正或价格出现折价再看。");
   }
   if (p.retention !== null && p.retention < 8 && p.fees30 !== null)
-    s.push("30 日费用 " + money(p.fees30) + " 里协议只留下 <em>" + p.retention.toFixed(1) + "%</em>，剩下全给了 LP —— 对代币持有人意义有限。");
-  else if (p.retention !== null && p.retention > 55)
-    s.push("协议留存 <em>" + p.retention.toFixed(0) + "%</em> 的费用，对代币持有人是实打实的现金流。");
-  if (p.chains.length === 1 && p.tvl > 1e8)
-    s.push("全部押在 " + esc(p.chains[0]) + " 一条链上，链层面的风险无法分散。");
-  return s.slice(0, 3).join("");
+    s.push("另外，30日费用 " + E(fmtUsd(p.fees30)) + " 里协议只留下 " + E(p.retention.toFixed(1) + "%") +
+      "，其余归 LP——对代币持有人来说，这份收入并不属于他们。");
+  return s.join("");
 }
 
 /* ============================================================
@@ -979,55 +1095,28 @@ function flowBars(host, rows, unitPct){
 /* ============================================================
    四、渲染
    ============================================================ */
-function renderKPI(){
-  var host = $("kpis"); host.innerHTML = "";
-  var k = S.kpi;
-  var tile = function(label, value, meta){
-    var t = el("div", "tile");
-    t.appendChild(el("div", "k", label));
-    t.appendChild(el("div", "v num", value));
-    t.appendChild(el("div", "m", meta));
-    return t;
-  };
-  host.appendChild(tile("全网 TVL", fmtUsd(k.tvl),
-    "7日 " + deltaHTML(k.tvl7) + " · 30日 " + deltaHTML(k.tvl30)));
-  host.appendChild(tile("稳定币供给", fmtUsd(k.stable),
-    "7日 " + deltaHTML(k.stable7) + " · 30日 " + deltaHTML(k.stable30)));
-  host.appendChild(tile("DEX 24h 成交", fmtUsd(k.dex24),
-    k.dexExp === null ? "量能数据缺失" : "7日均量较 30日均量 " + deltaHTML(k.dexExp)));
-  host.appendChild(tile("全网 24h 费用", fmtUsd(k.fee24),
-    "30日 " + fmtUsd(k.fee30, 1) + " · 量能 " + deltaHTML(k.feeExp)));
-
-  var m = $("riskBand");
-  m.innerHTML = "";
-  var r = k.risk;
-  var verdict = r === null ? "数据不足" :
-    (r >= 68 ? "进攻" : r >= 55 ? "偏多" : r >= 45 ? "中性" : r >= 32 ? "偏防守" : "防守");
-  var c1 = el("div");
-  c1.appendChild(el("div", "k", "风险偏好读数"));
-  c1.appendChild(el("div", "head", "<b>" + (r === null ? "—" : Math.round(r)) + "</b><span>" + verdict + "</span>"));
-  m.appendChild(c1);
-  var c2 = el("div");
-  var meter = el("div", "meter");
-  var mk2 = el("i");
-  mk2.style.left = (r === null ? 50 : clamp(r, 2, 98)) + "%";
-  meter.appendChild(mk2);
-  c2.appendChild(meter);
-  var sc = el("div", "meter-scale");
-  sc.innerHTML = "<span>0 防守</span><span>50 中性</span><span>100 进攻</span>";
-  c2.appendChild(sc);
-  m.appendChild(c2);
-  var c3 = el("div");
-  c3.appendChild(el("div", "meter-read", k.riskRead || "正在计算…"));
-  var parts = el("div", "meter-parts");
-  parts.innerHTML = "稳定币30日 " + deltaHTML(k.stable30) + " · TVL30日 " + deltaHTML(k.tvl30) +
-    " · DEX量能 " + deltaHTML(k.dexExp) + " · 费用量能 " + deltaHTML(k.feeExp);
-  c3.appendChild(parts);
-  m.appendChild(c3);
-
+function renderFunnel(){
+  var k = S.core, i;
+  var vb = $("verdict"), host = $("funnelSteps");
+  if (!k || !k.layers){ return; }
+  vb.className = "verdict " + k.verdict.kind;
+  vb.innerHTML = '<div class="lead">' + k.verdict.lead + '</div><div class="why">' + k.verdict.why + "</div>";
+  host.innerHTML = "";
+  for (i = 0; i < k.layers.length; i++){
+    var L = k.layers[i], st = el("div", "step");
+    st.innerHTML =
+      '<div class="hd"><span class="ord">' + L.ord + '</span><span class="nm">' + esc(L.n) +
+        '</span><span class="badge ' + L.k + '">' + BADGE[L.k] + "</span></div>" +
+      '<div class="q">' + esc(L.q) + "</div>" +
+      '<div class="fig">' + esc(L.fig) + "</div>" +
+      '<div class="sub">' + esc(L.sub) + "</div>" +
+      '<div class="mean">' + esc(L.mean) + "</div>";
+    host.appendChild(st);
+  }
+  $("funnelNote").textContent = S.updatedAt
+    ? "更新于 " + S.updatedAt.toLocaleTimeString("zh-CN", { hour12: false }) : "—";
   $("tvlNow").textContent = fmtUsd(k.tvl);
   $("stableNow").textContent = fmtUsd(k.stable);
-  $("pulseNote").textContent = S.updatedAt ? "更新于 " + S.updatedAt.toLocaleTimeString("zh-CN", { hour12: false }) : "—";
 }
 
 function renderCharts(){
@@ -1084,15 +1173,13 @@ var COLS = [
   { k: "rank",  t: "#",       sort: null },
   { k: "name",  t: "协议",     sort: null, cls: "l" },
   { k: "tvl",   t: "TVL",     sort: "tvl" },
-  { k: "d1",    t: "1D",      sort: "d1" },
-  { k: "d7",    t: "7D",      sort: "d7" },
-  { k: "d30",   t: "30D",     sort: "d30" },
+  { k: "d30",   t: "TVL 30日", sort: "d30" },
   { k: "feeApr",t: "年化费率",  sort: "feeApr" },
-  { k: "fees30",t: "30日费用", sort: "fees30" },
+  { k: "feeD30",t: "费用 30日", sort: "feeD30" },
+  { k: "scissors", t: "剪刀差", sort: "scissors" },
   { k: "pf",    t: "P/F",     sort: "pf" },
-  { k: "mcapTvl", t: "MC/TVL", sort: "mcapTvl" },
   { k: "score", t: "综合分",   sort: "score" },
-  { k: "tags",  t: "信号",     sort: null }
+  { k: "tags",  t: "诊断",     sort: null }
 ];
 
 function currentRows(){
@@ -1175,13 +1262,12 @@ function renderRadar(){
       '<td class="l"><div class="pname">' + logo + '<div class="t"><b>' + esc(p.name) + "</b><span>" +
         esc(p.category) + " · " + esc(p.chains.slice(0, 2).join("/")) + (p.chains.length > 2 ? " +" + (p.chains.length - 2) : "") + "</span></div></div></td>" +
       '<td class="num">' + fmtUsd(p.tvl) + "</td>" +
-      "<td>" + deltaHTML(p.d1) + "</td>" +
-      "<td>" + deltaHTML(p.d7) + "</td>" +
       "<td>" + deltaHTML(p.d30) + "</td>" +
       '<td class="num">' + fmtApr(p.feeApr) + "</td>" +
-      '<td class="num">' + (p.fees30 === null ? "—" : (p.feeKind !== "exact" ? "≈" : "") + fmtUsd(p.fees30, 1)) + "</td>" +
+      "<td>" + (p.feeKind !== "exact" && p.feeD30 !== null ? '<span style="color:var(--ink3)">≈</span>' : "") + deltaHTML(p.feeD30) + "</td>" +
+      '<td class="num ' + signCls(p.scissors) + '" style="font-weight:500">' +
+        (p.scissors === null ? "—" : (p.scissors > 0 ? "+" : "") + p.scissors.toFixed(1) + "pp") + "</td>" +
       '<td class="num">' + fmtX(p.pf) + "</td>" +
-      '<td class="num">' + (p.mcapTvl === null ? "—" : p.mcapTvl.toFixed(2) + "x") + "</td>" +
       '<td><span class="score"><span class="sbar"><i style="width:' + (p.score === null ? 0 : p.score.toFixed(0)) + '%"></i></span><b>' +
         (p.score === null ? "—" : p.score.toFixed(0)) + "</b></span></td>" +
       '<td><span class="chips">' + (chips || '<span class="chip n">无信号</span>') + "</span></td>";
@@ -1198,10 +1284,7 @@ function renderRadar(){
 function detailRow(p){
   var tr = el("tr", "detail"), td = el("td");
   td.colSpan = COLS.length;
-  var sub = function(label, v){
-    return '<div class="sub"><span>' + label + '</span><span class="track"><i style="width:' +
-      (v === null ? 0 : v.toFixed(0)) + '%"></i></span><span>' + (v === null ? "无数据" : v.toFixed(0)) + "</span></div>";
-  };
+  var sc = function(v){ return v === null ? "—" : v.toFixed(0); };
   var chainList = [], k;
   for (k in p.chainTvls) chainList.push({ n: k, v: p.chainTvls[k].tvl });
   chainList.sort(function(a, b){ return b.v - a.v; });
@@ -1218,6 +1301,8 @@ function detailRow(p){
           (p.mcap !== null ? "<span><b>市值</b> " + fmtUsd(p.mcap) + "</span>" : "<span><b>市值</b> 未收录</span>") +
           (p.symbol ? "<span><b>代币</b> " + esc(p.symbol) + "</span>" : "") +
         "</div>" +
+        (p.scissorsMode === "accel"
+          ? '<div class="kv"><span style="color:var(--ink3)">剪刀差为降级口径：数据源未提供 30 日增速，改用「近 7 日相对月度基准的加速度」之差，方向可信、绝对值偏小</span></div>' : "") +
         (p.feeKind && p.feeKind !== "exact"
           ? '<div class="kv"><span style="color:var(--amber)">⚠ 费用按' +
             (p.feeKind === "parent" ? "母协议" : "同名近似") + '口径归集，含多版本合计，比率仅供参考</span></div>' : "") +
@@ -1225,48 +1310,26 @@ function detailRow(p){
           '" target="_blank" rel="noopener">在 DefiLlama 查看完整历史 →</a></span></div>' +
       "</div>" +
       '<div class="subs">' +
-        '<div class="eyebrow" style="margin-bottom:2px">分项得分</div>' +
-        sub("动量", p.sM) + sub("现金流", p.sR) + sub("估值", p.sV) + sub("健康度", p.sH) +
-        '<div class="kv" style="margin-top:4px"><span>当前视角「' + esc(presetById(S.preset).name) +
-          '」加权后综合分 <b>' + (p.score === null ? "—" : p.score.toFixed(0)) + "</b></span></div>" +
+        '<div class="eyebrow" style="margin-bottom:4px">这条链断在哪一层</div>' + chainHTML(p) +
+        '<div class="kv" style="margin-top:8px"><span>四项得分 动量 <b>' + sc(p.sM) + "</b> · 现金流 <b>" + sc(p.sR) +
+          "</b> · 估值 <b>" + sc(p.sV) + "</b> · 健康度 <b>" + sc(p.sH) + "</b></span>" +
+          '<span>「' + esc(presetById(S.preset).name) + '」视角综合分 <b>' +
+          (p.score === null ? "—" : p.score.toFixed(0)) + "</b></span></div>" +
       "</div>" +
     "</div>";
   tr.appendChild(td);
   return tr;
 }
 
-function renderCash(){
-  var body = $("cashBody");
-  body.innerHTML = "";
-  var rows = S.feeIdx ? S.feeIdx.rows.slice() : [];
-  if (!rows.length){
-    var tr0 = el("tr"), td0 = el("td", "", '<div class="empty">费用数据源暂时不可用。</div>');
-    td0.colSpan = 8; tr0.appendChild(td0); body.appendChild(tr0); return;
+function chainHTML(p){
+  var c = chainOf(p), out = "", i, mark = { ok:"✓", warn:"~", bad:"✕", na:"?" };
+  for (i = 0; i < c.length; i++){
+    out += '<div class="clink"><span class="cmark ' + c[i].k + '">' + mark[c[i].k] + "</span>" +
+      '<span class="cname">' + esc(c[i].n) + "</span>" +
+      '<span class="cq">' + esc(c[i].q) + "</span>" +
+      '<span class="cval ' + c[i].k + '">' + esc(c[i].v) + '</span><span class="cu">' + esc(c[i].u) + "</span></div>";
   }
-  rows.sort(function(a, b){ return (num(b.total30d) || 0) - (num(a.total30d) || 0); });
-  rows = rows.slice(0, 25);
-  var i, r, p, rev, f30, apr, pf, ret;
-  for (i = 0; i < rows.length; i++){
-    r = rows[i];
-    p = S.protoIndex[String(r.defillamaId)] || S.protoByName[norm(r.name || r.displayName)] || null;
-    rev = (S.revIdx.byId[String(r.defillamaId)] || S.revIdx.byName[norm(r.name || r.displayName)] || null);
-    f30 = num(r.total30d);
-    apr = (p && f30 !== null && p.tvl > 0) ? f30 * YEAR_OVER_30D / p.tvl * 100 : null;
-    pf  = (p && p.mcap !== null && f30) ? p.mcap / (f30 * YEAR_OVER_30D) : null;
-    ret = (rev && f30) ? (num(rev.total30d) || 0) / f30 * 100 : null;
-    var tr = el("tr");
-    tr.innerHTML =
-      '<td class="l"><div class="pname"><div class="t"><b>' + esc(r.displayName || r.name) + "</b><span>" +
-        esc(r.category || "—") + "</span></div></div></td>" +
-      '<td class="num">' + fmtUsd(f30, 1) + "</td>" +
-      '<td class="num">' + fmtUsd(r.total7d, 1) + "</td>" +
-      '<td class="num">' + fmtUsd(r.total24h, 1) + "</td>" +
-      "<td>" + deltaHTML(r.change_1m) + "</td>" +
-      '<td class="num">' + (ret === null ? "—" : fmtPct(ret, 0)) + "</td>" +
-      '<td class="num">' + fmtApr(apr) + "</td>" +
-      '<td class="num">' + fmtX(pf) + "</td>";
-    body.appendChild(tr);
-  }
+  return '<div class="chain">' + out + "</div>";
 }
 
 /* ---------- 收益池 ---------- */
@@ -1374,47 +1437,130 @@ function fillSelect(sel, values, keep){
   if (cur) sel.value = cur;
 }
 
-function computeKPI(dexTotal, feeTotal){
-  var k = {};
+function judge(v, ok, bad){
+  if (v === null || v === undefined) return "na";
+  return v >= ok ? "ok" : (v <= bad ? "bad" : "warn");
+}
+var BADGE = { ok:"成立", warn:"存疑", bad:"断裂", na:"缺数据" };
+
+function computeCore(dexTotal, feeTotal){
+  var k = {}, i, p;
   var tvlS = S.tvlSeries, stS = S.stableSeries;
   k.tvl = tvlS.length ? tvlS[tvlS.length - 1].v : null;
-  k.tvl7 = pctChange(k.tvl, agoValue(tvlS, 7));
   k.tvl30 = pctChange(k.tvl, agoValue(tvlS, 30));
   k.stable = stS.length ? stS[stS.length - 1].v : null;
   k.stable7 = pctChange(k.stable, agoValue(stS, 7));
   k.stable30 = pctChange(k.stable, agoValue(stS, 30));
-  k.dex24 = dexTotal ? num(dexTotal.total24h) : null;
-  var d7 = dexTotal ? num(dexTotal.total7d) : null, d30 = dexTotal ? num(dexTotal.total30d) : null;
-  k.dexExp = (d7 && d30) ? ((d7 / 7) / (d30 / 30) - 1) * 100 : null;
-  k.fee24 = feeTotal ? num(feeTotal.total24h) : null;
-  k.fee30 = feeTotal ? num(feeTotal.total30d) : null;
-  var f7 = feeTotal ? num(feeTotal.total7d) : null;
-  k.feeExp = (f7 && k.fee30) ? ((f7 / 7) / (k.fee30 / 30) - 1) * 100 : null;
 
-  k.risk = wavg([
-    [scSigned(k.stable30, 6), 0.30],
-    [scSigned(k.tvl30, 18), 0.30],
-    [scSigned(k.dexExp, 22), 0.22],
-    [scSigned(k.feeExp, 22), 0.18]
-  ]);
-  /* 读数：点名当下最强的多空驱动，而不是给个分数了事 */
-  var reads = [];
-  if (k.stable30 !== null){
-    reads.push(k.stable30 > 1.5
-      ? "稳定币 30 日净增 " + k.stable30.toFixed(1) + "%，有新钱在进场，仓位可以更主动。"
-      : (k.stable30 < -1.5
-        ? "稳定币 30 日净减 " + Math.abs(k.stable30).toFixed(1) + "%，场内弹药在流失，追高的性价比很低。"
-        : "稳定币供给基本持平，增量资金没来，存量博弈为主。"));
+  /* 第二层：资金周转率 = 月度 DEX 成交量 ÷ TVL，并与上一个 30 日窗口对比 */
+  k.dexVol30 = dexTotal ? num(dexTotal.total30d) : null;
+  k.turnover = (k.dexVol30 !== null && k.tvl) ? k.dexVol30 / k.tvl : null;
+  var dexG = growthOf(dexTotal), tvlAgo = agoValue(tvlS, 30);
+  k.mode = dexG.mode;
+  if (dexG.mode === "30d"){
+    var volPrev = (k.dexVol30 !== null && dexG.v > -100) ? k.dexVol30 / (1 + dexG.v / 100) : null;
+    var turnPrev = (volPrev !== null && tvlAgo) ? volPrev / tvlAgo : null;
+    k.turnoverChg = (k.turnover !== null && turnPrev) ? (k.turnover / turnPrev - 1) * 100 : null;
+  } else if (dexG.mode === "7v30"){
+    /* 降级：成交量加速度 − TVL 加速度，同样衡量单位资金的周转是在扩张还是萎缩 */
+    var tvlAcc = seriesRatio(tvlS, 7, 30);
+    k.turnoverChg = (dexG.v !== null && tvlAcc !== null) ? dexG.v - tvlAcc : null;
+  } else k.turnoverChg = null;
+
+  /* 第三层：全网剪刀差 = 费用增速 − TVL 增速 */
+  k.fee30 = feeTotal ? num(feeTotal.total30d) : null;
+  k.fee24 = feeTotal ? num(feeTotal.total24h) : null;
+  var feeG = growthOf(feeTotal);
+  k.feeD30 = feeG.v; k.feeMode = feeG.mode;
+  var tvlRef = (feeG.mode === "30d") ? k.tvl30 : seriesRatio(tvlS, 7, 30);
+  k.tvlRef = tvlRef;
+  k.scissors = (feeG.v !== null && tvlRef !== null) ? feeG.v - tvlRef : null;
+  k.feeApr = (k.fee30 && k.tvl) ? k.fee30 * YEAR_OVER_30D / k.tvl * 100 : null;
+
+  /* 第四层：板块 P/F —— 只取费用口径精确且有市值的协议，避免母协议重复归集 */
+  var mc = 0, fe = 0, n = 0;
+  for (i = 0; i < S.protos.length; i++){
+    p = S.protos[i];
+    if (p.mcap === null || p.fees30 === null || p.fees30 <= 0) continue;
+    if (p.feeKind !== "exact") continue;
+    if (p.feeApr !== null && p.feeApr >= 1000) continue;
+    mc += p.mcap; fe += p.fees30; n++;
   }
-  if (k.tvl30 !== null && k.stable30 !== null && k.tvl30 > 8 && k.stable30 < 1)
-    reads.push("注意背离：TVL 涨了 " + k.tvl30.toFixed(1) + "% 但稳定币没跟上，这一轮多半是币价拉动的虚胖。");
-  if (k.dexExp !== null)
-    reads.push(k.dexExp > 5
-      ? "DEX 7 日均量较月均放大 " + k.dexExp.toFixed(0) + "%，量能在扩张。"
-      : (k.dexExp < -5 ? "DEX 7 日均量较月均萎缩 " + Math.abs(k.dexExp).toFixed(0) + "%，任何新高叙事都要打折。"
-         : "DEX 量能与月均持平。"));
-  k.riskRead = reads.slice(0, 2).join(" ");
+  k.sectorPF = fe > 0 ? mc / (fe * YEAR_OVER_30D) : null;
+  k.pfCount = n;
+
+  k.layers = [
+    { ord:"01", n:"钱", q:"场内资金还在增加吗",
+      fig: k.stable30 === null ? "—" : (k.stable30 > 0 ? "+" : "") + k.stable30.toFixed(1) + "%",
+      sub: fmtUsd(k.stable) + " · 7日 " + (k.stable7 === null ? "—" : (k.stable7 > 0 ? "+" : "") + k.stable7.toFixed(1) + "%"),
+      k: judge(k.stable30, 1, -1),
+      mean:"稳定币是 DeFi 的现金。它增发意味着有新钱换进场内，收缩意味着有人换回法币离场。这一层决定的是增量还是存量博弈。" },
+    { ord:"02", n:"用", q:"这些钱在周转吗",
+      fig: k.turnover === null ? "—" : k.turnover.toFixed(2) + "x",
+      sub: (k.mode === "7v30" ? "加速度 " : "环比 ") +
+           (k.turnoverChg === null ? "—" : (k.turnoverChg > 0 ? "+" : "") + k.turnoverChg.toFixed(1) + "%"),
+      k: judge(k.turnoverChg, 3, -3),
+      mean:"月度 DEX 成交量 ÷ TVL，即每 1 美元锁仓一个月撬动多少交易量。TVL 只说明钱有多少，周转率才说明钱有没有在干活——它下滑时，锁仓量再高也是躺着的。" },
+    { ord:"03", n:"赚", q:"收入跑赢规模了吗",
+      fig: k.scissors === null ? "—" : (k.scissors > 0 ? "+" : "") + k.scissors.toFixed(1) + "pp",
+      sub: "费用 " + (k.feeD30 === null ? "—" : (k.feeD30 > 0 ? "+" : "") + k.feeD30.toFixed(1) + "%") +
+           " − TVL " + (k.tvlRef === null ? "—" : (k.tvlRef > 0 ? "+" : "") + k.tvlRef.toFixed(1) + "%") +
+           (k.feeMode === "7v30" ? "（加速度口径）" : ""),
+      k: judge(k.scissors, 2, -2),
+      mean:"剪刀差为正，说明存量资金的赚钱效率在提升；为负，说明规模扩张靠的是不断堆新钱，单位资金的收入被稀释。费用是唯一刷不动的数据。" },
+    { ord:"04", n:"值", q:"价格是否已透支",
+      fig: k.sectorPF === null ? "—" : k.sectorPF.toFixed(1) + "x",
+      sub: k.pfCount + " 个协议加总",
+      k: (k.sectorPF === null ? "na" : (k.sectorPF <= 20 ? "ok" : (k.sectorPF > 45 ? "bad" : "warn"))),
+      mean:"只取费用口径精确且有市值的协议，市值总和 ÷ 年化费用总和，相当于整个板块的市盈率。20x 以下偏便宜、45x 以上偏贵是经验区间，不是硬阈值——它回答的是「同样的基本面，你付了多少钱」。" }
+  ];
+  k.verdict = verdictOf(k);
   return k;
+}
+
+/* 沿因果链找第一个断点，并由此推出当下该怎么打 */
+function verdictOf(k){
+  var L = k.layers, i, first = -1, kind = "ok";
+  for (i = 0; i < L.length; i++) if (L[i].k === "bad"){ first = i; kind = "bad"; break; }
+  if (first < 0) for (i = 0; i < L.length; i++) if (L[i].k === "warn"){ first = i; kind = "warn"; break; }
+  var f = function(v, d){ return v === null ? "—" : (v > 0 ? "+" : "") + num(v).toFixed(d == null ? 1 : d); };
+
+  if (first < 0){
+    var allNa = true;
+    for (i = 0; i < L.length; i++) if (L[i].k !== "na") allNa = false;
+    if (allNa) return { kind:"warn", lead:"数据不足，<em>暂不给结论</em>",
+      why:"四层指标都没能取到有效值。多半是数据源被网络拦截或临时限流，点右上角刷新重试；在拿到完整数据之前，下面的排名只能当参考。" };
+    return { kind:"ok", lead:"四层全部成立：<em>新钱在进场，钱在周转，收入在增长，估值没透支</em>",
+      why:"稳定币 30 日 " + f(k.stable30) + "%、周转率环比 " + f(k.turnoverChg) + "%、剪刀差 " + f(k.scissors) +
+        "pp、板块 P/F " + (k.sectorPF === null ? "—" : k.sectorPF.toFixed(1) + "x") + "。" +
+        "四种状态里这是最少见、也最适合承担风险的一种。<b>推论</b>：可以提高仓位弹性，重点放在剪刀差为正、体量还在 $10M–$600M 的早期标的上；" +
+        "同时把「稳定币供给转负」设成最优先的减仓触发条件——第一层一断，后面三层都要重估。" };
+  }
+  var soft = kind === "warn";
+  if (first === 0) return { kind:kind,
+    lead: soft ? "第一层就不稳：<em>场内资金停止增长</em>" : "第一层就断了：<em>场内资金在收缩</em>",
+    why:"稳定币 30 日供给 " + f(k.stable30) + "%，等于净" + (k.stable30 !== null && k.stable30 < 0 ? "有人把筹码换回现金离场" : "增量资金没有进场") +
+      "。这一层不成立，后面三层再漂亮也只是存量博弈——同一批钱在协议之间轮动，不会有整体性行情。" +
+      "<b>推论</b>：降低仓位弹性，把重心放在稳定币收益和有真实现金流的蓝筹上，不要追任何一个 TVL 创新高的叙事；" +
+      "真正的转折信号是稳定币供给重新转正，而不是某条链的 TVL 涨了。" };
+  if (first === 1) return { kind:kind,
+    lead:"断在第二层：<em>钱进来了，但没在干活</em>",
+    why:"稳定币供给 " + f(k.stable30) + "%（第一层成立），但每 1 美元锁仓撬动的月交易量环比 " + f(k.turnoverChg) +
+      "%，周转率在下滑。说明新增资金停在收益池里等激励，没有转化成链上活动。" +
+      "<b>推论</b>：这一阶段的行情由激励预算驱动而非真实需求，持续性取决于补贴还能发多久。" +
+      "参与要按「排放什么时候减」来定退出时点，不能按趋势外推；选标的优先看年化费率而不是 TVL 增速。" };
+  if (first === 2) return { kind:kind,
+    lead:"断在第三层：<em>有规模，没收入</em>",
+    why:"全网 TVL 30 日 " + f(k.tvl30) + "%，但费用 " + f(k.feeD30) + "%，剪刀差 " + f(k.scissors) +
+      "pp。规模扩张没有带来同比例的收入，意味着新增的那部分资金是不付费的——要么在零费率池，要么在挖激励。" +
+      "<b>推论</b>：板块层面的「增长」此刻不构成买入理由。选股要转向剪刀差为正的个体，用个股效率去抵消板块的摊薄；" +
+      "把下面雷达表切到「真实现金流」视角看的就是这批。" };
+  return { kind:kind,
+    lead:"前三层都成立，但<em>价格已经跑在前面</em>",
+    why:"板块 P/F " + (k.sectorPF === null ? "—" : k.sectorPF.toFixed(1) + "x") + "（" + k.pfCount +
+      " 个费用口径精确的协议加总），按当前收入水平回本要这么多年。基本面没有问题，问题是它已经被定价了。" +
+      "<b>推论</b>：超额收益不在龙头而在还没被重估的二线——用「剪刀差为正 + P/F 低于板块」去筛，" +
+      "而不是追已经涨完的那批；同时这一层的风险不是基本面恶化，而是估值向均值回归。" };
 }
 
 function load(){
@@ -1453,7 +1599,7 @@ function load(){
       }
       S.tvlSeries = seriesFrom(by.tvl.ok ? by.tvl.data : [], function(r){ return num(r.tvl); });
       S.stableSeries = seriesFrom(by.stablecoins.ok ? by.stablecoins.data : [], pickPegged);
-      S.kpi = computeKPI(by.dexs.ok ? by.dexs.data : null, by.fees.ok ? by.fees.data : null);
+      S.core = computeCore(by.dexs.ok ? by.dexs.data : null, by.fees.ok ? by.fees.data : null);
 
       var chainNames = {}, catNames = {}, j;
       for (i = 0; i < S.protos.length; i++){
@@ -1487,10 +1633,11 @@ function load(){
 }
 
 function showBlocked(detail){
-  var host = $("kpis");
+  $("funnelSteps").innerHTML = "";
+  var host = $("verdict");
+  host.className = "verdict bad";
   host.innerHTML = "";
-  var m = el("div", "msg");
-  m.style.gridColumn = "1 / -1";
+  var m = el("div", "why");
   m.innerHTML = "<b>拿不到数据。</b>本页所有数字都由你的浏览器直接向 DefiLlama 请求，常见原因有三个：" +
     "① 当前网络或企业代理拦截了 <code>api.llama.fi</code>；② 浏览器插件拦截了跨域请求；③ DefiLlama 临时限流，等一两分钟再点刷新。" +
     "如果你是在受限的嵌入环境里打开这个页面，把 <code>index.html</code> 下载到本地用浏览器直接打开即可恢复。" +
@@ -1500,11 +1647,10 @@ function showBlocked(detail){
 
 function renderAll(){
   if (!S.protos.length && !S.tvlSeries.length) return;
-  renderKPI();
+  renderFunnel();
   renderCharts();
   renderRadar();
   renderFlows();
-  renderCash();
   if (S.pools){
     var chains = {}, i;
     for (i = 0; i < S.pools.length; i++) chains[S.pools[i].chain] = 1;
@@ -1665,21 +1811,22 @@ function buildTabs(){
 }
 
 function skeleton(){
-  var host = $("kpis"), i;
-  for (i = 0; i < 4; i++){
-    var t = el("div", "tile");
-    t.appendChild(el("div", "k", ["全网 TVL", "稳定币供给", "DEX 24h 成交", "全网 24h 费用"][i]));
-    t.appendChild(el("div", "v num skel", "$0.00B"));
-    t.appendChild(el("div", "m skel", "加载中"));
-    host.appendChild(t);
+  var names = [["01","钱","场内资金还在增加吗"], ["02","用","这些钱在周转吗"],
+               ["03","赚","收入跑赢规模了吗"], ["04","值","价格是否已透支"]];
+  var host = $("funnelSteps"), i;
+  host.innerHTML = "";
+  for (i = 0; i < names.length; i++){
+    var st = el("div", "step");
+    st.innerHTML =
+      '<div class="hd"><span class="ord">' + names[i][0] + '</span><span class="nm">' + names[i][1] +
+        '</span><span class="badge na">读取中</span></div>' +
+      '<div class="q">' + names[i][2] + "</div>" +
+      '<div class="fig skel">0.0%</div><div class="sub skel">加载中</div>' +
+      '<div class="mean skel">正在计算这一层的指标与含义…</div>';
+    host.appendChild(st);
   }
-  var m = $("riskBand");
-  var c1 = el("div");
-  c1.appendChild(el("div", "k", "风险偏好读数"));
-  c1.appendChild(el("div", "head skel", "<b>00</b><span>计算中</span>"));
-  m.appendChild(c1);
-  var c2 = el("div"); c2.appendChild(el("div", "meter")); m.appendChild(c2);
-  m.appendChild(el("div", "meter-read skel", "正在根据稳定币供给、TVL 动量与量能变化，判断当前该进攻还是防守…"));
+  $("verdict").innerHTML = '<div class="lead skel">正在沿因果链定位当前断点…</div>' +
+    '<div class="why skel">四层指标全部取回后，这里会给出断点位置、机制说明和对应的操作推论。</div>';
   $("tvlChart").innerHTML = '<div class="empty"><span class="spin"></span> 加载中</div>';
   $("stableChart").innerHTML = '<div class="empty"><span class="spin"></span> 加载中</div>';
   var body = $("radarBody"), tr = el("tr"), td = el("td", "", '<div class="empty"><span class="spin"></span> 正在拉取全网协议数据并计算评分…</div>');
