@@ -431,7 +431,7 @@ footer a{color:var(--ink2)}
         <div><b>年化费率</b><span>30日费用 × 12.17 ÷ TVL。每 1 美元锁仓一年能产生多少手续费，衡量资金效率。低于 0.5% 基本等于钱在躺着。</span></div>
         <div><b>费用 30日</b><span>用户实际付出的钱的增速。TVL 和交易量都能刷，费用刷不动——刷费用等于真金白银烧钱。</span></div>
         <div><b>剪刀差</b><span>费用增速减 TVL 增速，单位是百分点。正 = 提效，负 = 摊薄。这是全表最该先看的一列。</span></div>
-        <div><b>P/F</b><span>市值 ÷ 年化费用，即协议的市盈率。同样赚 1 块钱，P/F 10x 和 80x 差的是你要等多少年回本。</span></div>
+        <div><b>P/F</b><span>市值 ÷ 年化费用，即协议的市盈率。同样赚 1 块钱，P/F 10x 和 80x 差的是你要等多少年回本。标「母」的行表示市值挂在母协议上（如 Uniswap V3），已按母协议各版本合计口径计算。</span></div>
         <div><b>诊断</b><span>由上面几项推出的单一结论，不是标签堆砌。展开行会给出推理过程和它断在因果链的哪一层。</span></div>
       </div>
     </details>
@@ -534,6 +534,7 @@ footer a{color:var(--ink2)}
         <ul>
           <li><strong>阈值是经验值不是定律</strong>：P/F 20x / 45x、剪刀差 ±2pp 这些分界来自经验区间，不同周期该平移，别当硬标准</li>
           <li><strong>费用口径会错配</strong>：部分协议按母协议归集（多版本合计），表内标 <code>≈</code>，这类比率只能横向参考</li>
+          <li><strong>市值挂在母协议上</strong>：数据源把 Uniswap 按 V2/V3/V4 拆行，市值只记在母协议。本页对这类行按母协议合计口径算 P/F 并标「母」，不会当成「未发币」</li>
           <li><strong>覆盖不等于全部</strong>：没有费用适配器的协议第三层无法验证，页面标成「收入未覆盖」而不是给它补零</li>
           <li><strong>链上数据看不到的</strong>：解锁表、代币集中度、合约升级权限、预言机与跨链桥依赖——这些才是归零风险的主要来源，全都不在这张表里</li>
         </ul>
@@ -740,8 +741,10 @@ var SKIP_CAT = { CEX:1, "Canonical Bridge":1 };
 function normProtocols(lite, legacy){
   var parents = {}, arr = [], out = [], i, j, r, tvl, d1, d7, d30, chains, k, ct, key;
   if (lite && Array.isArray(lite.parentProtocols)){
-    for (i = 0; i < lite.parentProtocols.length; i++)
-      parents[lite.parentProtocols[i].id] = lite.parentProtocols[i].name;
+    for (i = 0; i < lite.parentProtocols.length; i++){
+      var pp = lite.parentProtocols[i];
+      parents[pp.id] = { name: pp.name, mcap: num(pp.mcap) };
+    }
   }
   arr = (lite && Array.isArray(lite.protocols)) ? lite.protocols : (Array.isArray(legacy) ? legacy : []);
   for (i = 0; i < arr.length; i++){
@@ -773,7 +776,9 @@ function normProtocols(lite, legacy){
       logo: r.logo || "",
       symbol: (r.symbol && r.symbol !== "-") ? r.symbol : "",
       category: r.category || "其他",
-      parent: r.parentProtocol ? (parents[r.parentProtocol] || null) : null,
+      parent: (r.parentProtocol && parents[r.parentProtocol]) ? parents[r.parentProtocol].name : null,
+      parentId: r.parentProtocol || null,
+      parentMcap: (r.parentProtocol && parents[r.parentProtocol]) ? parents[r.parentProtocol].mcap : null,
       chains: chains, chainTvls: ct,
       tvl: tvl, d1: d1, d7: d7, d30: d30,
       mcap: num(r.mcap), listedAt: num(r.listedAt)
@@ -833,8 +838,6 @@ function enrich(protos, feeIdx, revIdx, dexIdx){
     p.vol30    = dx ? num(dx.total30d) : null;
     p.vol24    = dx ? num(dx.total24h) : null;
     p.feeApr   = (p.fees30 !== null && p.tvl > 0) ? p.fees30 * YEAR_OVER_30D / p.tvl * 100 : null;
-    p.pf       = (p.mcap !== null && p.fees30 !== null && p.fees30 > 0) ? p.mcap / (p.fees30 * YEAR_OVER_30D) : null;
-    p.mcapTvl  = (p.mcap !== null && p.tvl > 0) ? p.mcap / p.tvl : null;
     p.retention= (p.rev30 !== null && p.fees30 !== null && p.fees30 > 0) ? p.rev30 / p.fees30 * 100 : null;
     p.volTvl   = (p.vol30 !== null && p.tvl > 0) ? p.vol30 / MONTH_DAYS / p.tvl : null;
     p.fresh    = p.listedAt !== null && (Date.now() / 1000 - p.listedAt) < 200 * 86400;
@@ -846,9 +849,45 @@ function enrich(protos, feeIdx, revIdx, dexIdx){
       p.scissors = ((p.fees7 / 7) / (p.fees30 / 30) - 1) * 100 - (p.d7 - p.d30 * 7 / 30);
       p.scissorsMode = "accel";
     } else { p.scissors = null; p.scissorsMode = null; }
-    score(p);
   }
+  /* 第二趟：按母协议聚合 TVL 与费用。估值是母协议层面的属性，
+     不能拿 Uniswap 的市值去除以 V3 单独的 TVL */
+  var agg = {}, a;
+  for (i = 0; i < protos.length; i++){
+    p = protos[i];
+    if (!p.parentId) continue;
+    a = agg[p.parentId] || (agg[p.parentId] = { tvl: 0, fees30: 0, n: 0 });
+    a.tvl += p.tvl;
+    if (p.fees30 !== null && p.feeKind === "exact") a.fees30 += p.fees30;
+    a.n++;
+  }
+  /* 第三趟：定价口径 + 评分 */
+  for (i = 0; i < protos.length; i++){ valuation(protos[i], agg); score(protos[i]); }
   return protos;
+}
+
+/* 市值缺失有三种完全不同的含义，必须分开：
+   self          自有市值
+   parent        版本行，市值挂在母协议上 → 按母协议口径计算
+   parent-unknown 有母协议但母协议也没有市值数据 → 未知，不下结论
+   none          无母协议、无代币符号 → 才可能是真未发币 */
+function valuation(p, agg){
+  if (p.mcap !== null && p.tvl > 0){
+    p.mcapTvl = p.mcap / p.tvl;
+    p.pf = (p.fees30 !== null && p.fees30 > 0) ? p.mcap / (p.fees30 * YEAR_OVER_30D) : null;
+    p.valScope = "self";
+    return;
+  }
+  var a = p.parentId ? agg[p.parentId] : null;
+  if (p.parentMcap !== null && a && a.tvl > 0){
+    p.mcapTvl = p.parentMcap / a.tvl;
+    p.pf = a.fees30 > 0 ? p.parentMcap / (a.fees30 * YEAR_OVER_30D) : null;
+    p.parentAggFees = a.fees30; p.parentAggTvl = a.tvl;
+    p.valScope = "parent";
+    return;
+  }
+  p.mcapTvl = null; p.pf = null;
+  p.valScope = p.parentId ? "parent-unknown" : (p.symbol ? "token-unknown" : "none");
 }
 
 function score(p){
@@ -941,7 +980,7 @@ function composite(p, preset){
   if (preset === "early"){
     /* 体量甜区加成：太小是噪音，太大跑不动 */
     var band = (p.tvl >= 1e7 && p.tvl <= 6e8) ? 6 : (p.tvl > 6e8 ? -8 : -4);
-    var unlisted = (p.mcap === null && p.tvl > 3e7) ? 5 : 0;
+    var unlisted = (p.valScope === "none" && !p.symbol && p.tvl > 3e7) ? 5 : 0;
     base += band + unlisted;
   }
   return clamp(base, 0, 100);
@@ -952,7 +991,7 @@ function tagsOf(p){
   t.push({ k:d.k, s:d.s });
   if (p.pf !== null && p.pf > 45) t.push({ k:"a", s:"P/F 偏贵" });
   else if (p.pf !== null && p.pf < 12) t.push({ k:"b", s:"P/F 便宜" });
-  else if (p.mcap === null && p.tvl > 5e7) t.push({ k:"b", s:"未发币" });
+  else if (p.valScope === "none" && !p.symbol && p.tvl > 5e7) t.push({ k:"b", s:"疑似未发币" });
   if (p.retention !== null && p.retention < 8) t.push({ k:"n", s:"收入归 LP" });
   return t.slice(0, 3);
 }
@@ -1044,12 +1083,12 @@ var SCANNERS = [
     none:"熊转牛的初期这一栏通常是空的；它变多往往意味着市场在无差别抛售。" },
 
   { id:"unpriced", kind:"op", name:"未定价的现金流",
-    thesis:function(){ return "有真实费用收入、却查不到代币市值。要么尚未发币（积分 / 空投线索），要么只是市值未被收录。"; },
-    test:function(p){ return p.mcap === null && p.feeApr !== null && p.feeApr >= 8 &&
-      p.fees30 !== null && p.tvl >= 3e7; },
+    thesis:function(){ return "有真实费用收入，且数据源里既没有代币符号、也不隶属任何母协议——这才是可能的未发币标的。按版本拆行的协议（市值挂在母协议上）已排除。"; },
+    test:function(p){ return p.valScope === "none" && !p.symbol &&
+      p.feeApr !== null && p.feeApr >= 8 && p.fees30 !== null && p.tvl >= 3e7; },
     rank:function(p){ return p.feeApr; },
     tip:function(p){ return "年化费率 " + fmtPct(p.feeApr) + " · TVL " + fmtUsd(p.tvl, 1); },
-    act:"第一步先分清是真没发币还是数据缺失——这决定它是机会还是噪音。",
+    act:"仍要人工确认一次：数据源漏收市值也会落到这里，别把数据缺失当成空投预期。",
     none:"当前没有「有收入但无市值」的标的，空投线索要去别处找。" },
 
   { id:"early", kind:"op", name:"早期加速",
@@ -1090,7 +1129,7 @@ function scanAlpha(){
   for (i = 0; i < S.protos.length; i++){
     p = S.protos[i];
     if (p.feeApr !== null && p.feeApr >= SCAN_APR_CAP) continue;
-    if (p.pf !== null && p.pf > 0 && p.pf < 400 && p.feeKind === "exact") pfs.push(p.pf);
+    if (p.pf !== null && p.pf > 0 && p.pf < 400 && p.feeKind === "exact" && p.valScope === "self") pfs.push(p.pf);
     if (p.d7 !== null && p.tvl > 0){
       a = cat[p.category] || (cat[p.category] = { tvl: 0, prev: 0 });
       prev = p.tvl / (1 + p.d7 / 100);
@@ -1117,7 +1156,14 @@ function scanAlpha(){
       try { if (sc.test(p, ctx)) hits.push(p); } catch (e){}
     }
     hits.sort(function(x, y){ return sc.rank(y) - sc.rank(x); });
-    out.push({ sc: sc, hits: hits, ctx: ctx });
+    /* 同一母协议只保留排名最高的那一行，避免 Uniswap V2/V3/V4 占满结论 */
+    var seen = {}, dedup = [], key2;
+    for (j = 0; j < hits.length; j++){
+      key2 = hits[j].parentId || hits[j].name;
+      if (seen[key2]) continue;
+      seen[key2] = 1; dedup.push(hits[j]);
+    }
+    out.push({ sc: sc, hits: dedup, ctx: ctx });
   }
   return { rows: out, ctx: ctx };
 }
@@ -1482,7 +1528,9 @@ function renderRadar(){
       "<td>" + (p.feeKind !== "exact" && p.feeD30 !== null ? '<span style="color:var(--ink3)">≈</span>' : "") + deltaHTML(p.feeD30) + "</td>" +
       '<td class="num ' + signCls(p.scissors) + '" style="font-weight:500">' +
         (p.scissors === null ? "—" : (p.scissors > 0 ? "+" : "") + p.scissors.toFixed(1) + "pp") + "</td>" +
-      '<td class="num">' + fmtX(p.pf) + "</td>" +
+      '<td class="num">' + (p.valScope === "parent" && p.pf !== null
+        ? '<span title="市值挂在母协议上，此处按母协议口径计算" style="color:var(--ink3)">母</span> ' + fmtX(p.pf)
+        : fmtX(p.pf)) + "</td>" +
       '<td><span class="score"><span class="sbar"><i style="width:' + (p.score === null ? 0 : p.score.toFixed(0)) + '%"></i></span><b>' +
         (p.score === null ? "—" : p.score.toFixed(0)) + "</b></span></td>" +
       '<td><span class="chips">' + (chips || '<span class="chip n">无信号</span>') + "</span></td>";
@@ -1513,9 +1561,16 @@ function detailRow(p){
           (p.vol24 !== null ? "<span><b>24h 成交</b> " + fmtUsd(p.vol24) + "</span>" : "") +
           (p.volTvl !== null ? "<span><b>日均换手/TVL</b> " + (p.volTvl * 100).toFixed(1) + "%</span>" : "") +
           (p.rev30 !== null ? "<span><b>30日协议收入</b> " + fmtUsd(p.rev30) + "</span>" : "") +
-          (p.mcap !== null ? "<span><b>市值</b> " + fmtUsd(p.mcap) + "</span>" : "<span><b>市值</b> 未收录</span>") +
+          "<span><b>市值</b> " + (p.valScope === "self" ? fmtUsd(p.mcap)
+            : p.valScope === "parent" ? fmtUsd(p.parentMcap) + "（母协议 " + esc(p.parent) + "）"
+            : p.valScope === "parent-unknown" ? "母协议未收录"
+            : p.valScope === "token-unknown" ? "有代币 " + esc(p.symbol) + " 但市值未收录"
+            : "无代币记录") + "</span>" +
           (p.symbol ? "<span><b>代币</b> " + esc(p.symbol) + "</span>" : "") +
         "</div>" +
+        (p.valScope === "parent"
+          ? '<div class="kv"><span style="color:var(--ink3)">P/F 与 MC/TVL 按母协议 ' + esc(p.parent) +
+            ' 口径计算：市值是母协议层面的属性，该协议的各版本合计 TVL 参与分母，不能单独用本行 TVL</span></div>' : "") +
         (p.scissorsMode === "accel"
           ? '<div class="kv"><span style="color:var(--ink3)">剪刀差为降级口径：数据源未提供 30 日增速，改用「近 7 日相对月度基准的加速度」之差，方向可信、绝对值偏小</span></div>' : "") +
         (p.feeKind && p.feeKind !== "exact"
@@ -1693,13 +1748,19 @@ function computeCore(dexTotal, feeTotal){
   k.feeApr = (k.fee30 && k.tvl) ? k.fee30 * YEAR_OVER_30D / k.tvl * 100 : null;
 
   /* 第四层：板块 P/F —— 只取费用口径精确且有市值的协议，避免母协议重复归集 */
-  var mc = 0, fe = 0, n = 0;
+  var mc = 0, fe = 0, n = 0, seenP = {};
   for (i = 0; i < S.protos.length; i++){
     p = S.protos[i];
-    if (p.mcap === null || p.fees30 === null || p.fees30 <= 0) continue;
-    if (p.feeKind !== "exact") continue;
     if (p.feeApr !== null && p.feeApr >= 1000) continue;
-    mc += p.mcap; fe += p.fees30; n++;
+    if (p.valScope === "self"){
+      if (p.fees30 === null || p.fees30 <= 0 || p.feeKind !== "exact") continue;
+      mc += p.mcap; fe += p.fees30; n++;
+    } else if (p.valScope === "parent" && p.parentId && !seenP[p.parentId] &&
+               p.parentMcap !== null && p.parentAggFees > 0){
+      /* 按版本拆行的协议，整个母协议只计一次，避免重复计入市值 */
+      seenP[p.parentId] = 1;
+      mc += p.parentMcap; fe += p.parentAggFees; n++;
+    }
   }
   k.sectorPF = fe > 0 ? mc / (fe * YEAR_OVER_30D) : null;
   k.pfCount = n;
@@ -1725,7 +1786,7 @@ function computeCore(dexTotal, feeTotal){
       mean:"剪刀差为正，说明存量资金的赚钱效率在提升；为负，说明规模扩张靠的是不断堆新钱，单位资金的收入被稀释。费用是唯一刷不动的数据。" },
     { ord:"04", n:"值", q:"价格是否已透支",
       fig: k.sectorPF === null ? "—" : k.sectorPF.toFixed(1) + "x",
-      sub: k.pfCount + " 个协议加总",
+      sub: k.pfCount + " 个协议/协议族加总",
       k: (k.sectorPF === null ? "na" : (k.sectorPF <= 20 ? "ok" : (k.sectorPF > 45 ? "bad" : "warn"))),
       mean:"只取费用口径精确且有市值的协议，市值总和 ÷ 年化费用总和，相当于整个板块的市盈率。20x 以下偏便宜、45x 以上偏贵是经验区间，不是硬阈值——它回答的是「同样的基本面，你付了多少钱」。" }
   ];
