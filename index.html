@@ -147,6 +147,35 @@ section{margin-block:38px; scroll-margin-top:72px}
 .step .mean{font-size:12px; color:var(--ink2); line-height:1.62; margin-top:5px;
   padding-top:8px; border-top:1px solid var(--border)}
 
+/* ---------- Alpha 扫描 ---------- */
+.alpha-lead{background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--accent);
+  border-radius:10px; padding:14px 17px 15px; margin-bottom:10px}
+.alpha-lead .t{font-size:15px; font-weight:600; line-height:1.55; text-wrap:balance}
+.alpha-lead .t em{font-style:normal; color:var(--accent)}
+.alpha-lead .d{margin-top:6px; font-size:12.5px; color:var(--ink2); line-height:1.68; max-width:80ch}
+.scan-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(310px,1fr)); gap:10px}
+.scan{background:var(--surface); border:1px solid var(--border); border-radius:10px;
+  padding:13px 15px 14px; display:flex; flex-direction:column; gap:7px; min-width:0}
+.scan.empty-scan{opacity:.62}
+.scan .hd{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+.scan .hd b{font-size:13.5px; font-weight:600}
+.scan .kind{font-family:var(--mono); font-size:10px; padding:1.5px 6px; border-radius:3px; flex:none}
+.scan .kind.op{background:var(--c-up-soft); color:var(--c-up)}
+.scan .kind.av{background:var(--c-down-soft); color:var(--c-down)}
+.scan .cnt{margin-left:auto; font-family:var(--mono); font-size:10.5px; color:var(--ink3)}
+.scan .th{font-size:12px; color:var(--ink2); line-height:1.65}
+.scan .hits{display:flex; flex-wrap:wrap; gap:5px}
+.hit{display:inline-flex; align-items:baseline; gap:5px; border:1px solid var(--border);
+  background:var(--surface2); border-radius:5px; padding:3px 8px; font-size:11.5px;
+  cursor:pointer; transition:border-color .15s, background .15s; max-width:100%}
+.hit:hover{border-color:var(--accent); background:var(--accent-soft)}
+.hit b{font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:130px}
+.hit span{font-family:var(--mono); font-size:10.5px; color:var(--ink3); white-space:nowrap}
+.hit:hover span{color:var(--accent)}
+.scan .act{font-size:11.5px; color:var(--ink3); line-height:1.6; margin-top:auto;
+  padding-top:8px; border-top:1px solid var(--border)}
+.scan .none{font-size:12px; color:var(--ink3); line-height:1.6}
+
 /* ---------- 指标释义 ---------- */
 .glossary{background:var(--surface); border:1px solid var(--border); border-radius:10px; margin-bottom:12px}
 .glossary summary{cursor:pointer; padding:11px 15px; font-size:12.5px; color:var(--ink2);
@@ -373,9 +402,22 @@ footer a{color:var(--ink2)}
     </div>
   </section>
 
+  <section id="alpha">
+    <div class="sec-head">
+      <span class="eyebrow">03 / ALPHA</span>
+      <h2>自动扫描结论</h2>
+      <span class="note" id="alphaNote">—</span>
+    </div>
+    <p class="sec-sub">把平时要手动筛的几种形态写成扫描器，每次刷新自动跑一遍全网协议。
+      <strong>机会型</strong>找的是「基本面已经改善、价格还没反应」的错配；<strong>规避型</strong>找的是反过来的情况。
+      点任意标的会跳到下方雷达表并自动筛选。</p>
+    <div class="alpha-lead" id="alphaLead"></div>
+    <div class="scan-grid" id="scanGrid"></div>
+  </section>
+
   <section id="radar">
     <div class="sec-head">
-      <span class="eyebrow">03 / 雷达</span>
+      <span class="eyebrow">04 / 雷达</span>
       <h2>趋势雷达</h2>
       <span class="note" id="radarNote">—</span>
     </div>
@@ -416,7 +458,7 @@ footer a{color:var(--ink2)}
 
   <section id="flows">
     <div class="sec-head">
-      <span class="eyebrow">04 / 流向</span>
+      <span class="eyebrow">05 / 流向</span>
       <h2>钱从哪来，到哪去</h2>
       <span class="note">近 7 日 · 按协议 TVL 聚合口径</span>
     </div>
@@ -437,7 +479,7 @@ footer a{color:var(--ink2)}
 
   <section id="yield">
     <div class="sec-head">
-      <span class="eyebrow">05 / 收益</span>
+      <span class="eyebrow">06 / 收益</span>
       <h2>收益机会台</h2>
       <span class="note" id="yieldNote">按需加载 · 数据包较大</span>
     </div>
@@ -452,7 +494,7 @@ footer a{color:var(--ink2)}
 
   <section id="method">
     <div class="sec-head">
-      <span class="eyebrow">06 / 方法</span>
+      <span class="eyebrow">07 / 方法</span>
       <h2>怎么读这些数字</h2>
     </div>
     <p class="sec-sub">下面是这个页面的全部计算口径，以及我这些年踩过的坑。看不懂指标就别下注——这是最便宜的风控。</p>
@@ -970,6 +1012,179 @@ function takeOf(p){
     s.push("另外，30日费用 " + E(fmtUsd(p.fees30)) + " 里协议只留下 " + E(p.retention.toFixed(1) + "%") +
       "，其余归 LP——对代币持有人来说，这份收入并不属于他们。");
   return s.join("");
+}
+
+/* ============================================================
+   Alpha 扫描：把平时手动筛的形态写成可自动执行的规则
+   ============================================================ */
+function sgn(v, unit, d){
+  if (v === null || v === undefined) return "—";
+  return (v > 0 ? "+" : "") + num(v).toFixed(d == null ? 1 : d) + (unit || "%");
+}
+/* 结论要比明细表更保守：年化费率高到这个程度，基本都是费用适配器与 TVL 口径错配 */
+var SCAN_APR_CAP = 300;
+var SCANNERS = [
+  { id:"mispriced", kind:"op", name:"效率错配",
+    thesis:function(c){ return "费用增速跑赢 TVL 增速 10pp 以上，P/F 却低于板块中位数 " +
+      (c.pfMedian === null ? "—" : c.pfMedian.toFixed(1) + "x") + "：基本面已经改善，价格还没跟上。"; },
+    test:function(p, c){ return p.scissors !== null && p.scissors >= 10 && p.pf !== null && p.pf > 0 &&
+      c.pfMedian !== null && p.pf < c.pfMedian && p.feeApr !== null && p.feeApr >= 2 && p.tvl >= 2e7; },
+    rank:function(p){ return p.scissors / Math.max(p.pf, 1); },
+    tip:function(p){ return "剪刀差 " + sgn(p.scissors, "pp") + " · P/F " + fmtX(p.pf); },
+    act:"证伪方式很直接：下个月费用增速掉回去，这条逻辑就作废。",
+    none:"没有命中说明市场对收入加速的定价是有效的，此时硬找错配容易踩到数据口径问题。" },
+
+  { id:"shrink", kind:"op", name:"缩表提效",
+    thesis:function(){ return "TVL 在撤但费用没同步下滑——走掉的是套利和挖矿资金，留下的是真实用户。市场通常只看到 TVL 跌。"; },
+    test:function(p){ return p.d30 !== null && p.d30 <= -10 && p.scissors !== null && p.scissors >= 15 &&
+      p.feeApr !== null && p.feeApr >= 3 && p.tvl >= 2e7; },
+    rank:function(p){ return p.scissors; },
+    tip:function(p){ return "TVL " + sgn(p.d30) + " · 剪刀差 " + sgn(p.scissors, "pp"); },
+    act:"要确认它的费用绝对值也在增长，而不只是跌得比 TVL 慢。",
+    none:"熊转牛的初期这一栏通常是空的；它变多往往意味着市场在无差别抛售。" },
+
+  { id:"unpriced", kind:"op", name:"未定价的现金流",
+    thesis:function(){ return "有真实费用收入、却查不到代币市值。要么尚未发币（积分 / 空投线索），要么只是市值未被收录。"; },
+    test:function(p){ return p.mcap === null && p.feeApr !== null && p.feeApr >= 8 &&
+      p.fees30 !== null && p.tvl >= 3e7; },
+    rank:function(p){ return p.feeApr; },
+    tip:function(p){ return "年化费率 " + fmtPct(p.feeApr) + " · TVL " + fmtUsd(p.tvl, 1); },
+    act:"第一步先分清是真没发币还是数据缺失——这决定它是机会还是噪音。",
+    none:"当前没有「有收入但无市值」的标的，空投线索要去别处找。" },
+
+  { id:"early", kind:"op", name:"早期加速",
+    thesis:function(){ return "体量还在 $10M–$300M，TVL 月增 20% 以上且剪刀差不为负：增长有收入支撑，还没到被大资金定价的规模。"; },
+    test:function(p){ return p.tvl >= 1e7 && p.tvl <= 3e8 && p.d30 !== null && p.d30 >= 20 &&
+      p.scissors !== null && p.scissors >= 0 && p.feeApr !== null && p.feeApr >= 1; },
+    rank:function(p){ return p.d30 + p.scissors; },
+    tip:function(p){ return "TVL " + sgn(p.d30) + " · 剪刀差 " + sgn(p.scissors, "pp"); },
+    act:"体量小意味着流动性风险，仓位大小要按「能否在一天内退出」来定。",
+    none:"小体量里没有带收入的加速者，说明当前的增长集中在头部。" },
+
+  { id:"rotation", kind:"op", name:"赛道轮动",
+    thesis:function(c){ return c.topCat
+      ? "近 7 日资金净流入最多的赛道是 " + c.topCat + "（" + sgn(c.topCatPct) + "），下面是该赛道里剪刀差为正的标的——资金流与收入效率指向同一批。"
+      : "赛道资金流数据不足，无法定位轮动方向。"; },
+    test:function(p, c){ return c.topCat && p.category === c.topCat &&
+      p.scissors !== null && p.scissors > 0 && p.tvl >= 2e7; },
+    rank:function(p){ return p.scissors; },
+    tip:function(p){ return "剪刀差 " + sgn(p.scissors, "pp") + " · TVL " + fmtUsd(p.tvl, 1); },
+    act:"轮动的持续性看资金流能否延续到第二周，别在第三周才进场。",
+    none:"资金净流入最多的赛道里没有剪刀差为正的标的，说明这轮流入没有收入支撑。" },
+
+  { id:"trap", kind:"av", name:"补贴陷阱",
+    thesis:function(){ return "TVL 月增 25% 以上，却几乎不产生费用、或剪刀差深度为负：靠排放堆出来的雇佣资本。"; },
+    test:function(p){ return p.d30 !== null && p.d30 >= 25 &&
+      ((p.feeApr !== null && p.feeApr < 0.5) || (p.scissors !== null && p.scissors <= -25)); },
+    rank:function(p){ return p.d30; },
+    tip:function(p){
+      var lowFee = p.feeApr !== null && p.feeApr < 0.5;
+      return "TVL " + sgn(p.d30) + " · " + (lowFee ? "年化费率 " + fmtPct(p.feeApr, 2)
+                                                   : "剪刀差 " + sgn(p.scissors, "pp")); },
+    act:"这类标的在排放减半公告当天会一次性回吐，不要误当成趋势。",
+    none:"当前没有明显的补贴堆量标的，激励强度处在低位。" }
+];
+
+function scanAlpha(){
+  var i, j, p, pfs = [], cat = {}, a, prev;
+  for (i = 0; i < S.protos.length; i++){
+    p = S.protos[i];
+    if (p.feeApr !== null && p.feeApr >= SCAN_APR_CAP) continue;
+    if (p.pf !== null && p.pf > 0 && p.pf < 400 && p.feeKind === "exact") pfs.push(p.pf);
+    if (p.d7 !== null && p.tvl > 0){
+      a = cat[p.category] || (cat[p.category] = { tvl: 0, prev: 0 });
+      prev = p.tvl / (1 + p.d7 / 100);
+      if (isFinite(prev)){ a.tvl += p.tvl; a.prev += prev; }
+    }
+  }
+  pfs.sort(function(x, y){ return x - y; });
+  var ctx = { pfMedian: pfs.length ? pfs[Math.floor(pfs.length / 2)] : null, topCat: null, topCatPct: null };
+  var best = null, key;
+  for (key in cat){
+    if (cat[key].tvl < 2e8) continue;
+    var pc = pctChange(cat[key].tvl, cat[key].prev);
+    if (pc === null || Math.abs(pc) > 300) continue;
+    if (!best || pc > best.pct) best = { name: key, pct: pc };
+  }
+  if (best && best.pct > 0){ ctx.topCat = best.name; ctx.topCatPct = best.pct; }
+
+  var out = [];
+  for (i = 0; i < SCANNERS.length; i++){
+    var sc = SCANNERS[i], hits = [];
+    for (j = 0; j < S.protos.length; j++){
+      p = S.protos[j];
+      if (p.feeApr !== null && p.feeApr >= SCAN_APR_CAP) continue;
+      try { if (sc.test(p, ctx)) hits.push(p); } catch (e){}
+    }
+    hits.sort(function(x, y){ return sc.rank(y) - sc.rank(x); });
+    out.push({ sc: sc, hits: hits, ctx: ctx });
+  }
+  return { rows: out, ctx: ctx };
+}
+
+/* 一句话总结论：由漏斗断点 + 扫描命中共同决定 */
+function alphaLead(scan){
+  var k = S.core, ops = [], trap = null, i, r;
+  for (i = 0; i < scan.rows.length; i++){
+    r = scan.rows[i];
+    if (r.sc.kind === "op" && r.hits.length) ops.push(r);
+    if (r.sc.id === "trap") trap = r;
+  }
+  ops.sort(function(a, b){ return b.hits.length - a.hits.length; });
+  var brokeAtMoney = k && k.layers && k.layers[0] && k.layers[0].k === "bad";
+  var names = function(r, n){
+    return r.hits.slice(0, n).map(function(p){ return p.name; }).join("、");
+  };
+  if (brokeAtMoney){
+    return { t:"当前<em>不是找 alpha 的环境</em>：主线第一层已经断了",
+      d:"场内资金在净流出，个股层面的错配很容易被系统性下跌吃掉。这一阶段扫描结果只作观察，" +
+        (trap && trap.hits.length ? "倒是「补贴陷阱」命中 " + trap.hits.length + " 个（" + names(trap, 3) + "），这类在资金收缩期回吐最快，优先规避。"
+                                  : "真正的介入信号是稳定币供给重新转正。") };
+  }
+  if (!ops.length){
+    return { t:"全网扫描<em>没有命中任何机会形态</em>",
+      d:"六类形态全空，通常意味着两件事之一：市场定价目前是有效的，或者费用数据覆盖不足以支撑判断。" +
+        "这种时候空仓等待的期望收益，高于硬找标的。" };
+  }
+  var top = ops[0];
+  return { t:"当下最值得看的方向是<em>" + esc(top.sc.name) + "</em>：命中 " + top.hits.length + " 个标的",
+    d:"代表标的 " + names(top, 3) + "。" + top.sc.thesis(scan.ctx) +
+      (ops.length > 1 ? " 另有 " + (ops.length - 1) + " 类形态也有命中，逐张卡片往下看。" : "") +
+      (trap && trap.hits.length ? " 同时有 " + trap.hits.length + " 个标的落入补贴陷阱，注意规避。" : "") };
+}
+
+function renderAlpha(){
+  var host = $("scanGrid"), lead = $("alphaLead");
+  if (!S.protos.length) return;
+  var scan = scanAlpha(), i, j, opHits = 0;
+  var L = alphaLead(scan);
+  lead.innerHTML = '<div class="t">' + L.t + '</div><div class="d">' + L.d + "</div>";
+  host.innerHTML = "";
+  for (i = 0; i < scan.rows.length; i++){
+    var r = scan.rows[i], sc = r.sc;
+    if (sc.kind === "op") opHits += r.hits.length;
+    var card = el("div", "scan" + (r.hits.length ? "" : " empty-scan"));
+    var head = '<div class="hd"><span class="kind ' + sc.kind + '">' +
+      (sc.kind === "op" ? "机会" : "规避") + '</span><b>' + esc(sc.name) +
+      '</b><span class="cnt">' + r.hits.length + ' 个</span></div>';
+    var body = '<div class="th">' + sc.thesis(scan.ctx) + "</div>";
+    if (r.hits.length){
+      var chips = "";
+      for (j = 0; j < Math.min(5, r.hits.length); j++){
+        var p = r.hits[j];
+        chips += '<button class="hit" data-name="' + esc(p.name) + '" title="点击在雷达表中查看">' +
+          "<b>" + esc(p.name) + "</b><span>" + esc(sc.tip(p)) + "</span></button>";
+      }
+      if (r.hits.length > 5) chips += '<span class="hit" style="cursor:default">+' + (r.hits.length - 5) + "</span>";
+      body += '<div class="hits">' + chips + "</div>";
+      body += '<div class="act">' + esc(sc.act) + "</div>";
+    } else {
+      body += '<div class="none">当前无命中。' + esc(sc.none) + "</div>";
+    }
+    card.innerHTML = head + body;
+    host.appendChild(card);
+  }
+  $("alphaNote").textContent = "扫描 " + S.protos.length + " 个协议 · 机会命中 " + opHits + " 个";
 }
 
 /* ============================================================
@@ -1649,6 +1864,7 @@ function renderAll(){
   if (!S.protos.length && !S.tvlSeries.length) return;
   renderFunnel();
   renderCharts();
+  renderAlpha();
   renderRadar();
   renderFlows();
   if (S.pools){
@@ -1740,6 +1956,19 @@ function bind(){
     var on = this.getAttribute("aria-pressed") === "true";
     this.setAttribute("aria-pressed", on ? "false" : "true");
     renderRadar();
+  });
+
+  $("scanGrid").addEventListener("click", function(ev){
+    var h = ev.target.closest(".hit");
+    if (!h || !h.dataset.name) return;
+    /* 放开筛选条件，确保该标的一定可见 */
+    $("q").value = h.dataset.name;
+    $("minTvl").value = "3000000";
+    $("chainFilter").value = ""; $("catFilter").value = "";
+    $("watchOnly").setAttribute("aria-pressed", "false");
+    S.expanded[h.dataset.name] = true;
+    renderRadar();
+    $("radar").scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
   $("radarHead").addEventListener("click", function(ev){
