@@ -262,6 +262,19 @@ tr.detail td{padding:0; border-bottom:1px solid var(--border); background:var(--
 .kv{display:flex; flex-wrap:wrap; gap:4px 16px; font-family:var(--mono); font-size:11px; color:var(--ink3); margin-top:10px}
 .kv b{color:var(--ink2); font-weight:500}
 
+/* ---------- 数据体检 ---------- */
+.msg.ok{border-left-color:var(--c-up)}
+.msg.bad{border-left-color:var(--c-down)}
+.hbody{padding:13px 15px 15px; border-top:1px solid var(--border); display:grid; gap:15px}
+.hgroup{display:grid; gap:4px}
+.hgroup .eyebrow{margin-bottom:3px}
+.hrow{display:grid; grid-template-columns:19px minmax(96px,auto) 1fr; align-items:baseline; gap:9px;
+  font-size:12px; line-height:1.6; padding:2px 0}
+.hrow .hn{font-weight:600; font-size:12px}
+.hrow .hv{color:var(--ink2); font-family:var(--mono); font-size:11px; word-break:break-word}
+.hrow .cmark{width:17px; height:17px; align-self:center}
+@media (max-width:560px){ .hrow{grid-template-columns:19px 1fr} .hrow .hv{grid-column:2} }
+
 /* ---------- 因果链断点 ---------- */
 .chain{display:grid; gap:1px; background:var(--border); border:1px solid var(--border); border-radius:7px; overflow:hidden}
 .clink{display:grid; grid-template-columns:20px 26px 1fr auto auto; align-items:center; gap:9px;
@@ -337,7 +350,7 @@ footer a{color:var(--ink2)}
 <div class="bar">
   <div class="bar-in">
     <div class="brand"><b>链上牌桌</b><span>DEFI DESK</span></div>
-    <span class="pill" id="status" aria-live="polite"><span class="dot" id="statusDot"></span><span id="statusText">正在连接数据源…</span></span>
+    <button class="pill" id="status" aria-live="polite" title="查看数据体检" style="cursor:pointer"><span class="dot" id="statusDot"></span><span id="statusText">正在连接数据源…</span></button>
     <span class="pill" title="距离下次自动刷新"><span id="countdown" class="num">--:--</span></span>
     <select class="btn" id="interval" aria-label="自动刷新间隔">
       <option value="60000">1 分钟</option>
@@ -410,6 +423,7 @@ footer a{color:var(--ink2)}
     </div>
     <p class="sec-sub">把平时要手动筛的几种形态写成扫描器，每次刷新自动跑一遍全网协议。
       <strong>机会型</strong>找的是「基本面已经改善、价格还没反应」的错配；<strong>规避型</strong>找的是反过来的情况。
+      结论只采用费用口径<strong>精确匹配</strong>的协议——表内标 <code>≈</code> 的近似归集可以参考，但不足以支撑结论。
       点任意标的会跳到下方雷达表并自动筛选。</p>
     <div class="alpha-lead" id="alphaLead"></div>
     <div class="scan-grid" id="scanGrid"></div>
@@ -492,9 +506,25 @@ footer a{color:var(--ink2)}
     <div id="poolArea"><div class="empty">点「加载收益池数据」拉取全网约 1.5 万个收益池并按老玩家的口径过滤排序。</div></div>
   </section>
 
+  <section id="health">
+    <div class="sec-head">
+      <span class="eyebrow">07 / 体检</span>
+      <h2>数据可信吗</h2>
+      <span class="note" id="healthNote">—</span>
+    </div>
+    <p class="sec-sub">所有结论都建立在数据源给了什么之上，所以这一节把它摊开：七个端点各自的状态、
+      关键字段是否存在、走了哪条降级口径、同口径的两个端点能不能对上账、序列滞后多久、以及和上次刷新比有没有异常跳变。
+      <strong>先看这里再信上面的结论。</strong></p>
+    <div class="msg" id="healthSum">正在体检…</div>
+    <details class="glossary" id="healthDetails" style="margin-top:10px">
+      <summary>逐项展开</summary>
+      <div class="hbody" id="healthBody"></div>
+    </details>
+  </section>
+
   <section id="method">
     <div class="sec-head">
-      <span class="eyebrow">07 / 方法</span>
+      <span class="eyebrow">08 / 方法</span>
       <h2>怎么读这些数字</h2>
     </div>
     <p class="sec-sub">下面是这个页面的全部计算口径，以及我这些年踩过的坑。看不懂指标就别下注——这是最便宜的风控。</p>
@@ -691,11 +721,145 @@ var watchSet = function(){ var m = {}, i;
    一、拉取与归一化
    ============================================================ */
 function grab(url, label){
+  var t0 = Date.now();
   return fetch(url, { cache: "no-store" }).then(function(r){
-    if (!r.ok) throw new Error(label + " HTTP " + r.status);
-    return r.json();
-  }).then(function(j){ return { ok: true, label: label, data: j }; })
-    .catch(function(e){ return { ok: false, label: label, error: String(e.message || e) }; });
+    var st = r.status;
+    if (!r.ok) throw new Error("HTTP " + st);
+    return r.json().then(function(j){
+      return { ok: true, label: label, data: j, ms: Date.now() - t0, status: st };
+    });
+  }).catch(function(e){
+    return { ok: false, label: label, error: String(e.message || e), ms: Date.now() - t0 };
+  });
+}
+
+/* ============================================================
+   数据体检：端点状态、字段探测、口径一致性、新鲜度、跳变
+   —— 可靠性的前提是能看见数据源到底给了什么
+   ============================================================ */
+var HEALTH_SNAP = "health.snapshot";
+
+function probeShape(res, protos){
+  var f = [], d = res.protocols, lite = d && d.ok ? d.data : null, i, row = null, kinds = {};
+  var say = function(name, ok, note){ f.push({ n: name, ok: ok, note: note || "" }); };
+
+  if (lite && Array.isArray(lite.protocols) && lite.protocols.length){
+    row = lite.protocols[0];
+    say("协议列表", "ok", "lite/protocols2 · " + lite.protocols.length + " 行");
+  } else if (res["protocols-legacy"] && res["protocols-legacy"].ok){
+    say("协议列表", "warn", "lite 端点不可用，已降级到 /protocols");
+  } else {
+    say("协议列表", "bad", "两个端点都没拿到数据");
+  }
+  if (row){
+    say("tvlPrevWeek", row.tvlPrevWeek !== undefined ? "ok" : "warn",
+      row.tvlPrevWeek !== undefined ? "7 日对比可用" : "缺失，7 日变化改由 change_7d 推导");
+    say("tvlPrevMonth", row.tvlPrevMonth !== undefined ? "ok" : "warn",
+      row.tvlPrevMonth !== undefined ? "30 日对比可用" : "缺失，剪刀差将走降级口径");
+    say("symbol", row.symbol !== undefined ? "ok" : "warn",
+      row.symbol !== undefined ? "可用于判断是否发币" : "缺失，未发币判据只剩母协议关系");
+    var ctv = row.chainTvls && typeof row.chainTvls === "object";
+    var firstK = ctv ? Object.keys(row.chainTvls)[0] : null;
+    var isObj = firstK && row.chainTvls[firstK] && typeof row.chainTvls[firstK] === "object";
+    say("chainTvls 结构", ctv ? (isObj ? "ok" : "warn") : "bad",
+      !ctv ? "缺失，链级资金流不可用" : (isObj ? "对象型，含链级历史" : "数值型，链级流向走降级折算"));
+  }
+  if (lite){
+    var pp = Array.isArray(lite.parentProtocols) ? lite.parentProtocols : [];
+    var withMcap = 0;
+    for (i = 0; i < pp.length; i++) if (num(pp[i].mcap) !== null) withMcap++;
+    say("parentProtocols", pp.length ? (withMcap ? "ok" : "warn") : "warn",
+      pp.length ? pp.length + " 个母协议，其中 " + withMcap + " 个带市值"
+                : "缺失，按版本拆行的协议无法归集母协议市值");
+  }
+  var fo = res.fees && res.fees.ok ? res.fees.data : null;
+  if (fo){
+    say("费用 change_1m", num(fo.change_1m) !== null ? "ok" : "warn",
+      num(fo.change_1m) !== null ? "30 日口径可用" : "缺失，剪刀差改用 7v30 加速度口径");
+    var frows = rowsOf(fo), withId = 0, withChg = 0;
+    for (i = 0; i < frows.length; i++){
+      if (frows[i].defillamaId != null) withId++;
+      if (num(frows[i].change_1m) !== null) withChg++;
+    }
+    say("费用行 defillamaId", frows.length && withId / frows.length > 0.8 ? "ok" : "warn",
+      withId + "/" + frows.length + " 行带 ID（ID 匹配比名字匹配可靠得多）");
+    say("费用行 change_1m", frows.length && withChg / frows.length > 0.5 ? "ok" : "warn",
+      withChg + "/" + frows.length + " 行带 30 日增速");
+  } else say("费用端点", "bad", "不可用，第三层与所有现金流判断失效");
+
+  for (i = 0; i < protos.length; i++) kinds[protos[i].feeKind || "none"] = (kinds[protos[i].feeKind || "none"] || 0) + 1;
+  var exact = kinds.exact || 0, loose = (kinds.parent || 0) + (kinds.approx || 0);
+  say("费用匹配质量", loose > exact ? "warn" : "ok",
+    "精确 " + exact + " · 近似 " + loose + " · 无匹配 " + (kinds.none || 0) + "（只有精确匹配参与结论）");
+  return f;
+}
+
+function freshnessOf(ser, name){
+  if (!ser || !ser.length) return { n: name, ok: "bad", note: "无数据" };
+  var last = ser[ser.length - 1].t, lag = (Date.now() - last) / 3600000;
+  var d = new Date(last);
+  var stamp = (d.getMonth() + 1) + "月" + d.getDate() + "日";
+  return { n: name, ok: lag > 60 ? "bad" : (lag > 36 ? "warn" : "ok"), asOf: last,
+    note: "截至 " + stamp + " · 滞后 " + lag.toFixed(0) + " 小时" +
+      (lag > 36 ? "（窗口对比会偏移，慎读）" : "") };
+}
+
+/* 口径对账。注意两件事语义完全不同：
+   链加总与历史序列是同一口径，本应接近，不接近就是有端点失真；
+   协议加总天然高于链加总（重复计算），比的是这个倍数稳不稳，而不是它等不等于 1 */
+function crossCheck(res, protos){
+  var out = [], i, sum = 0, v;
+  for (i = 0; i < protos.length; i++) sum += protos[i].tvl;
+  var chains = res.chains && res.chains.ok ? res.chains.data : null, chainSum = null;
+  if (Array.isArray(chains) && chains.length){
+    chainSum = 0;
+    for (i = 0; i < chains.length; i++){ v = num(chains[i].tvl); if (v !== null) chainSum += v; }
+  }
+  var hist = S.tvlSeries.length ? S.tvlSeries[S.tvlSeries.length - 1].v : null;
+
+  if (chainSum && hist){
+    var dev = Math.abs(chainSum / hist - 1) * 100;
+    out.push({ n:"链加总 vs 历史序列", ok: dev > 10 ? "bad" : (dev > 4 ? "warn" : "ok"),
+      note: fmtUsd(chainSum) + " vs " + fmtUsd(hist) + " · 偏差 " + dev.toFixed(1) + "%" +
+        (dev > 4 ? "（同口径本应接近，偏差说明有一端在更新中或已失真）" : "") });
+  } else {
+    out.push({ n:"链加总 vs 历史序列", ok:"warn", note:"缺少其中一个端点，无法对账" });
+  }
+
+  if (chainSum && sum){
+    var mult = sum / chainSum;
+    out.push({ n:"重复计算系数", ok: (mult >= 1 && mult <= 3) ? "ok" : "warn",
+      note: "协议加总 " + fmtUsd(sum) + " ÷ 链加总 " + fmtUsd(chainSum) + " = " + mult.toFixed(2) + "x · " +
+        (mult < 1 ? "低于 1 不合常理，协议列表可能不完整"
+         : mult > 3 ? "偏高，重复计算比常态严重，慎用协议加总口径"
+         : "正常区间：同一笔钱在 LST、借贷、LP 里被重复计入，这个倍数突变才值得警惕") });
+  }
+  return out;
+}
+
+/* 与上次刷新对比，识别单次返回残缺造成的假信号 */
+function snapCheck(k, protoCount){
+  var now = { ts: Date.now(), tvl: k.tvl, stable: k.stable, fee30: k.fee30, n: protoCount };
+  var prev = store.get(HEALTH_SNAP, null), out = [];
+  if (prev && prev.ts && (now.ts - prev.ts) < 24 * 3600000){
+    var mins = Math.max(1, Math.round((now.ts - prev.ts) / 60000));
+    var cmp = function(label, a, b, tol){
+      if (a === null || b === null || !b) return;
+      var ch = (a / b - 1) * 100;
+      if (Math.abs(ch) > tol)
+        out.push({ n: label + "跳变", ok: "bad",
+          note: mins + " 分钟内变化 " + (ch > 0 ? "+" : "") + ch.toFixed(1) +
+            "%，超出 ±" + tol + "% 阈值——这个幅度更可能是数据源残缺而不是真实行情" });
+    };
+    cmp("TVL", now.tvl, prev.tvl, 15);
+    cmp("稳定币供给", now.stable, prev.stable, 8);
+    cmp("协议数量", now.n, prev.n, 25);
+    if (!out.length) out.push({ n: "跳变检测", ok: "ok", note: mins + " 分钟前的快照对比无异常" });
+  } else {
+    out.push({ n: "跳变检测", ok: "na", note: "尚无可比对的历史快照，下次刷新后生效" });
+  }
+  store.set(HEALTH_SNAP, now);
+  return out;
 }
 
 function rowsOf(payload){
@@ -1153,6 +1317,8 @@ function scanAlpha(){
     for (j = 0; j < S.protos.length; j++){
       p = S.protos[j];
       if (p.feeApr !== null && p.feeApr >= SCAN_APR_CAP) continue;
+      /* 名字近似匹配出来的费用不足以支撑结论，只允许精确 ID / 全名匹配进入扫描 */
+      if (p.feeKind !== "exact") continue;
       try { if (sc.test(p, ctx)) hits.push(p); } catch (e){}
     }
     hits.sort(function(x, y){ return sc.rank(y) - sc.rank(x); });
@@ -1374,8 +1540,14 @@ function renderFunnel(){
       '<div class="mean">' + esc(L.mean) + "</div>";
     host.appendChild(st);
   }
-  $("funnelNote").textContent = S.updatedAt
-    ? "更新于 " + S.updatedAt.toLocaleTimeString("zh-CN", { hour12: false }) : "—";
+  var stale = "";
+  if (S.health && S.health.fresh){
+    for (i = 0; i < S.health.fresh.length; i++){
+      if (S.health.fresh[i].ok !== "ok"){ stale = " · ⚠ " + S.health.fresh[i].n + S.health.fresh[i].note.replace("截至", " 截至"); break; }
+    }
+  }
+  $("funnelNote").textContent = (S.updatedAt
+    ? "更新于 " + S.updatedAt.toLocaleTimeString("zh-CN", { hour12: false }) : "—") + stale;
   $("tvlNow").textContent = fmtUsd(k.tvl);
   $("stableNow").textContent = fmtUsd(k.stable);
 }
@@ -1859,6 +2031,7 @@ function load(){
     var next = (!pro || !(pro.protocols && pro.protocols.length))
       ? grab(EP.protos, "protocols-legacy") : Promise.resolve(null);
     return next.then(function(legacy){
+      if (legacy){ by["protocols-legacy"] = legacy; res.push(legacy); }
       if (legacy && legacy.ok) pro = { protocols: null, legacy: legacy.data };
       var protos = normProtocols(
         pro && pro.protocols ? pro : null,
@@ -1887,13 +2060,30 @@ function load(){
       fillSelect($("catFilter"), cg);
       S.updatedAt = new Date();
       S.errors = fails;
+      S.health = {
+        endpoints: res.map(function(r){
+          return { n: r.label, ok: r.ok ? "ok" : "bad",
+            note: (r.ok ? "正常" : "失败：" + r.error) + " · " + (r.ms == null ? "—" : r.ms + "ms") +
+              (r.ok && r.data ? " · " + (Array.isArray(r.data) ? r.data.length + " 条"
+                : (rowsOf(r.data).length ? rowsOf(r.data).length + " 行" : "对象")) : "") };
+        }),
+        fields: probeShape(by, S.protos),
+        fresh: [freshnessOf(S.tvlSeries, "TVL 序列"), freshnessOf(S.stableSeries, "稳定币序列")],
+        cross: crossCheck(by, S.protos),
+        snap: snapCheck(S.core, S.protos.length)
+      };
       renderAll();
       var okCount = 7 - fails.length;
+      var warn = healthIssues();
       if (!S.protos.length){
         setStatus("bad", "数据源不可达");
         showBlocked();
       } else if (fails.length){
         setStatus("warn", okCount + "/7 数据源正常 · " + S.updatedAt.toLocaleTimeString("zh-CN", { hour12: false }));
+      } else if (warn.bad){
+        setStatus("warn", "体检 " + warn.bad + " 项异常 · " + S.updatedAt.toLocaleTimeString("zh-CN", { hour12: false }));
+      } else if (warn.warn){
+        setStatus("warn", "体检 " + warn.warn + " 项提示 · " + S.updatedAt.toLocaleTimeString("zh-CN", { hour12: false }));
       } else {
         setStatus("ok", "数据实时 · " + S.updatedAt.toLocaleTimeString("zh-CN", { hour12: false }));
       }
@@ -1921,10 +2111,48 @@ function showBlocked(detail){
   host.appendChild(m);
 }
 
+function healthIssues(){
+  var h = S.health, bad = 0, warn = 0, g, i;
+  if (!h) return { bad: 0, warn: 0 };
+  var all = [].concat(h.endpoints, h.fields, h.fresh, h.cross, h.snap);
+  for (i = 0; i < all.length; i++){
+    if (all[i].ok === "bad") bad++; else if (all[i].ok === "warn") warn++;
+  }
+  return { bad: bad, warn: warn };
+}
+
+function renderHealth(){
+  var h = S.health, host = $("healthBody");
+  if (!h || !host) return;
+  var mark = { ok:"✓", warn:"!", bad:"✕", na:"?" };
+  var group = function(title, rows){
+    var out = '<div class="hgroup"><div class="eyebrow">' + esc(title) + "</div>";
+    for (var i = 0; i < rows.length; i++){
+      out += '<div class="hrow"><span class="cmark ' + rows[i].ok + '">' + mark[rows[i].ok] + "</span>" +
+        '<span class="hn">' + esc(rows[i].n) + '</span><span class="hv">' + esc(rows[i].note) + "</span></div>";
+    }
+    return out + "</div>";
+  };
+  host.innerHTML =
+    group("数据源", h.endpoints) + group("字段探测", h.fields) +
+    group("新鲜度", h.fresh) + group("口径对账", h.cross) + group("快照对比", h.snap);
+  var w = healthIssues();
+  $("healthNote").textContent = w.bad ? w.bad + " 项异常 · " + w.warn + " 项提示"
+    : (w.warn ? w.warn + " 项提示" : "全部正常");
+  var sum = $("healthSum");
+  sum.className = "msg" + (w.bad ? " bad" : (w.warn ? "" : " ok"));
+  sum.innerHTML = w.bad
+    ? "<b>有 " + w.bad + " 项异常。</b>标 ✕ 的条目会直接影响结论可信度，展开逐条看：数据源失败会让对应层失效，跳变告警多半是单次返回残缺而不是真实行情。"
+    : (w.warn
+      ? "<b>有 " + w.warn + " 项提示。</b>多数是数据源缺字段导致的降级口径——方向仍可信，绝对值会偏小。逐条展开可以看到走了哪条降级路径。"
+      : "<b>全部正常。</b>七个数据源齐全、关键字段完整、三口径对账一致、与上次刷新无异常跳变。");
+}
+
 function renderAll(){
   if (!S.protos.length && !S.tvlSeries.length) return;
   renderFunnel();
   renderCharts();
+  renderHealth();
   renderAlpha();
   renderRadar();
   renderFlows();
@@ -1984,6 +2212,11 @@ document.addEventListener("visibilitychange", function(){
 /* ---------- 事件 ---------- */
 function bind(){
   $("refresh").addEventListener("click", load);
+  $("status").addEventListener("click", function(){
+    var d = $("healthDetails");
+    if (d) d.open = true;
+    $("health").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
   $("interval").addEventListener("change", function(){ resetTimer(); store.set("interval", this.value); });
   $("loadPools").addEventListener("click", loadPools);
   $("poolChain").addEventListener("change", renderPools);
