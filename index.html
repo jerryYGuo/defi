@@ -1,0 +1,1714 @@
+<title>链上牌桌</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  color-scheme: light;
+  --plane:#F0F3F6; --surface:#FFFFFF; --surface2:#F6F8FA; --surface3:#EAEEF3;
+  --border:#DEE3EA; --border-strong:#C4CCD6; --hair:rgba(15,22,32,.08);
+  --ink:#0F1620; --ink2:#53606F; --ink3:#7E8B9A;
+  --accent:#07717A; --accent-ink:#FFFFFF; --accent-soft:#DEF0F1;
+  --s1:#2A78D6; --s1-soft:rgba(42,120,214,.16);
+  --s2:#EB6834; --s2-soft:rgba(235,104,52,.16);
+  --green:#12855A; --red:#C4362F; --amber:#A96C06;
+  --green-soft:rgba(18,133,90,.12); --red-soft:rgba(196,54,47,.12); --amber-soft:rgba(169,108,6,.13);
+  --c-up:var(--green); --c-down:var(--red);
+  --c-up-soft:var(--green-soft); --c-down-soft:var(--red-soft);
+  --grid:#E6EAEF; --axis:#C4CCD6;
+  --shadow:0 1px 2px rgba(15,22,32,.05), 0 8px 24px -16px rgba(15,22,32,.25);
+  --mono:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --disp:"Archivo", system-ui, sans-serif;
+  --cjk:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC","Source Han Sans SC",sans-serif;
+  --ui:var(--disp), var(--cjk);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --plane:#0B0F14; --surface:#131A21; --surface2:#19212A; --surface3:#212B35;
+    --border:#242E39; --border-strong:#36434F; --hair:rgba(255,255,255,.08);
+    --ink:#EDF1F5; --ink2:#9CAABA; --ink3:#6C7A89;
+    --accent:#4CC2CB; --accent-ink:#06282B; --accent-soft:rgba(76,194,203,.14);
+    --s1:#3987E5; --s1-soft:rgba(57,135,229,.20);
+    --s2:#D95926; --s2-soft:rgba(217,89,38,.22);
+    --green:#2FBF71; --red:#F0625C; --amber:#F0B429;
+    --green-soft:rgba(47,191,113,.15); --red-soft:rgba(240,98,92,.15); --amber-soft:rgba(240,180,41,.15);
+    --grid:#202A34; --axis:#36434F;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --plane:#0B0F14; --surface:#131A21; --surface2:#19212A; --surface3:#212B35;
+  --border:#242E39; --border-strong:#36434F; --hair:rgba(255,255,255,.08);
+  --ink:#EDF1F5; --ink2:#9CAABA; --ink3:#6C7A89;
+  --accent:#4CC2CB; --accent-ink:#06282B; --accent-soft:rgba(76,194,203,.14);
+  --s1:#3987E5; --s1-soft:rgba(57,135,229,.20);
+  --s2:#D95926; --s2-soft:rgba(217,89,38,.22);
+  --green:#2FBF71; --red:#F0625C; --amber:#F0B429;
+  --green-soft:rgba(47,191,113,.15); --red-soft:rgba(240,98,92,.15); --amber-soft:rgba(240,180,41,.15);
+  --grid:#202A34; --axis:#36434F;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -18px rgba(0,0,0,.8);
+}
+:root[data-delta="cn"]{ --c-up:var(--red); --c-down:var(--green); --c-up-soft:var(--red-soft); --c-down-soft:var(--green-soft); }
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--plane); color:var(--ink);
+  font-family:var(--ui); font-size:14px; line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1360px; margin:0 auto; padding-inline:16px; padding-block:0 64px}
+h1,h2,h3{font-family:var(--disp),var(--cjk); text-wrap:balance; margin:0; font-weight:600; letter-spacing:-.01em}
+a{color:var(--accent); text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:3px}
+.num{font-family:var(--mono); font-variant-numeric:tabular-nums; letter-spacing:-.02em}
+.eyebrow{font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink3); font-weight:500}
+
+/* ---------- command bar ---------- */
+.bar{
+  position:sticky; top:env(safe-area-inset-top, 0px); z-index:40;
+  background:color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter:blur(12px); border-bottom:1px solid var(--border);
+}
+.bar-in{max-width:1360px; margin:0 auto; padding-inline:16px; padding-block:9px;
+  display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+.brand{display:flex; align-items:baseline; gap:9px; margin-right:auto}
+.brand b{font-family:var(--disp); font-size:16px; font-weight:700; letter-spacing:-.02em}
+.brand span{font-family:var(--mono); font-size:10.5px; color:var(--ink3); letter-spacing:.08em}
+.pill{display:inline-flex; align-items:center; gap:6px; height:28px; padding:0 10px;
+  border:1px solid var(--border); border-radius:999px; background:var(--surface2);
+  font-family:var(--mono); font-size:11.5px; color:var(--ink2); white-space:nowrap}
+.dot{width:7px; height:7px; border-radius:50%; background:var(--ink3); flex:none}
+.dot.ok{background:var(--green)} .dot.warn{background:var(--amber)} .dot.bad{background:var(--red)}
+.dot.live{animation:bp 2.4s ease-in-out infinite}
+@keyframes bp{0%,100%{opacity:1}50%{opacity:.35}}
+button{font:inherit; color:inherit; cursor:pointer}
+.btn{display:inline-flex; align-items:center; gap:6px; height:28px; padding:0 11px;
+  border:1px solid var(--border); border-radius:6px; background:var(--surface);
+  font-family:var(--mono); font-size:11.5px; color:var(--ink2); transition:border-color .15s, color .15s}
+.btn:hover{border-color:var(--border-strong); color:var(--ink)}
+.btn[aria-pressed="true"]{border-color:var(--accent); color:var(--accent); background:var(--accent-soft)}
+.btn.primary{background:var(--accent); color:var(--accent-ink); border-color:var(--accent); font-weight:500}
+.btn.primary:hover{opacity:.9; color:var(--accent-ink)}
+select.btn{padding-right:6px; -webkit-appearance:none; appearance:none; text-align:center}
+.spin{display:inline-block; width:9px; height:9px; border:1.5px solid currentColor;
+  border-right-color:transparent; border-radius:50%; animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ---------- masthead ---------- */
+.mast{padding-block:26px 18px; border-bottom:1px solid var(--border); margin-bottom:22px}
+.mast h1{font-size:clamp(26px,4.2vw,40px); line-height:1.12; font-weight:700}
+.mast p{margin:10px 0 0; max-width:62ch; color:var(--ink2); font-size:14.5px}
+.mast .rail{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px}
+.rail .tag{font-family:var(--mono); font-size:11px; color:var(--ink2);
+  border:1px solid var(--border); border-radius:4px; padding:2px 8px; background:var(--surface)}
+
+/* ---------- sections ---------- */
+section{margin-block:38px; scroll-margin-top:72px}
+.sec-head{display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap; margin-bottom:14px}
+.sec-head h2{font-size:19px}
+.sec-head .note{color:var(--ink3); font-size:12px; margin-left:auto; font-family:var(--mono)}
+.sec-sub{color:var(--ink2); font-size:13px; margin:-6px 0 14px; max-width:74ch}
+
+/* ---------- tiles ---------- */
+.kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(196px,1fr)); gap:10px}
+.tile{background:var(--surface); border:1px solid var(--border); border-radius:10px;
+  padding:13px 14px 12px; display:flex; flex-direction:column; gap:3px; min-width:0}
+.tile .k{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink3)}
+.tile .v{font-family:var(--mono); font-size:25px; font-weight:600; letter-spacing:-.03em; line-height:1.2}
+.tile .m{font-size:11.5px; color:var(--ink3); font-family:var(--mono); min-height:18px}
+.delta{font-family:var(--mono); font-weight:500; font-size:12px}
+.up{color:var(--c-up)} .down{color:var(--c-down)} .flat{color:var(--ink3)}
+
+/* risk meter */
+.risk-band{background:var(--surface); border:1px solid var(--border); border-radius:10px;
+  padding:14px 16px 15px; margin-bottom:10px; display:grid; gap:12px 24px; align-items:center;
+  grid-template-columns:minmax(118px,auto) minmax(190px,1fr) minmax(250px,1.35fr)}
+@media (max-width:860px){ .risk-band{grid-template-columns:1fr} }
+.risk-band .head{display:flex; align-items:baseline; gap:9px; flex-wrap:wrap}
+.risk-band .head b{font-family:var(--mono); font-size:28px; font-weight:600; letter-spacing:-.03em; line-height:1.1}
+.risk-band .head span{font-size:14.5px; font-weight:600; color:var(--ink2)}
+.meter{position:relative; height:9px; border-radius:999px; margin:9px 0 7px;
+  background:linear-gradient(90deg, var(--c-down-soft) 0%, var(--surface3) 45%, var(--surface3) 55%, var(--c-up-soft) 100%);
+  border:1px solid var(--border)}
+.meter i{position:absolute; top:-4px; width:3px; height:15px; border-radius:2px; background:var(--ink);
+  transform:translateX(-1.5px); transition:left .6s cubic-bezier(.2,.7,.3,1)}
+.meter-scale{display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; color:var(--ink3)}
+.meter-read{font-size:12.5px; color:var(--ink2); line-height:1.6}
+.meter-parts{display:flex; gap:4px 12px; flex-wrap:wrap; margin-top:7px; font-family:var(--mono); font-size:10.5px; color:var(--ink3)}
+
+/* ---------- charts ---------- */
+.charts{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:10px}
+.chart-card{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 6px 8px 6px}
+.chart-card header{display:flex; align-items:baseline; gap:10px; padding:0 9px 2px; flex-wrap:wrap}
+.chart-card header h3{font-size:13.5px; font-weight:600}
+.chart-card header .val{margin-left:auto; font-family:var(--mono); font-size:13px; font-weight:600}
+.chart-card .legend{display:flex; align-items:center; gap:6px; padding:0 9px 8px; font-family:var(--mono); font-size:10.5px; color:var(--ink3)}
+.swatch{width:9px; height:9px; border-radius:2px; flex:none}
+.chart-wrap{position:relative}
+.chart-wrap svg{display:block; width:100%; height:auto; touch-action:pan-y}
+.tip{position:absolute; pointer-events:none; opacity:0; transform:translate(-50%,-100%);
+  background:var(--surface); border:1px solid var(--border-strong); border-radius:6px;
+  padding:5px 8px; font-family:var(--mono); font-size:11px; white-space:nowrap;
+  box-shadow:var(--shadow); transition:opacity .12s; z-index:3; color:var(--ink)}
+.tip b{display:block; font-weight:600; font-size:12px}
+.tip s{display:block; text-decoration:none; color:var(--ink3); font-size:10px}
+
+/* ---------- controls ---------- */
+.controls{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px}
+.tabs{display:flex; gap:4px; flex-wrap:wrap; background:var(--surface2); padding:4px;
+  border:1px solid var(--border); border-radius:8px}
+.tab{height:27px; padding:0 11px; border:0; border-radius:5px; background:transparent;
+  font-size:12.5px; color:var(--ink2); white-space:nowrap; transition:background .15s,color .15s}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{background:var(--surface); color:var(--ink); font-weight:500; box-shadow:var(--shadow)}
+input[type="search"], select{font:inherit}
+.field{height:28px; padding:0 9px; border:1px solid var(--border); border-radius:6px;
+  background:var(--surface); color:var(--ink); font-family:var(--mono); font-size:11.5px}
+.field::placeholder{color:var(--ink3)}
+
+/* ---------- table ---------- */
+.tbl-wrap{overflow:auto; max-height:min(68vh,640px); overscroll-behavior:contain;
+  background:var(--surface); border:1px solid var(--border); border-radius:10px}
+table{border-collapse:collapse; width:100%; min-width:940px}
+th,td{text-align:right; padding:9px 10px; border-bottom:1px solid var(--border); white-space:nowrap}
+th{position:sticky; top:0; z-index:2; background:var(--surface2); font-family:var(--mono);
+  font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink3); font-weight:500;
+  cursor:pointer; user-select:none}
+th:hover{color:var(--ink)}
+th[aria-sort]{color:var(--accent)}
+th.l, td.l{text-align:left}
+tbody tr{transition:background .12s}
+tbody tr.row:hover{background:var(--surface2); cursor:pointer}
+tbody tr:last-child td{border-bottom:0}
+.pname{display:flex; align-items:center; gap:9px; min-width:0}
+.pname img{width:19px; height:19px; border-radius:50%; flex:none; background:var(--surface3)}
+.pname .t{display:flex; flex-direction:column; min-width:0; line-height:1.35}
+.pname .t b{font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:190px}
+.pname .t span{font-size:10.5px; color:var(--ink3); font-family:var(--mono); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:190px}
+.star{border:0; background:none; padding:2px 4px; color:var(--ink3); font-size:13px; line-height:1}
+.star[aria-pressed="true"]{color:var(--amber)}
+.score{display:inline-flex; align-items:center; gap:7px; justify-content:flex-end}
+.score b{font-family:var(--mono); font-size:13.5px; font-weight:600; width:32px; text-align:right}
+.sbar{width:46px; height:5px; border-radius:3px; background:var(--surface3); overflow:hidden; flex:none}
+.sbar i{display:block; height:100%; border-radius:3px; background:var(--accent)}
+.chips{display:flex; gap:4px; justify-content:flex-end; flex-wrap:nowrap}
+.chip{font-family:var(--mono); font-size:10px; padding:1.5px 6px; border-radius:3px;
+  border:1px solid transparent; white-space:nowrap}
+.chip.g{background:var(--c-up-soft); color:var(--c-up)}
+.chip.r{background:var(--c-down-soft); color:var(--c-down)}
+.chip.a{background:var(--amber-soft); color:var(--amber)}
+.chip.n{background:var(--surface3); color:var(--ink2)}
+.chip.b{background:var(--accent-soft); color:var(--accent)}
+tr.detail td{padding:0; border-bottom:1px solid var(--border); background:var(--surface2)}
+.detail-in{padding:15px 16px 17px; display:grid; gap:15px; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); text-align:left; white-space:normal}
+@media (max-width:760px){ .detail-in{grid-template-columns:1fr} }
+.take{font-size:13.5px; line-height:1.72; margin:0}
+.take em{font-style:normal; background:var(--accent-soft); color:var(--accent); padding:0 4px; border-radius:3px; font-family:var(--mono); font-size:12.5px}
+.subs{display:grid; gap:7px}
+.sub{display:grid; grid-template-columns:62px 1fr 38px; align-items:center; gap:9px;
+  font-family:var(--mono); font-size:11px; color:var(--ink2)}
+.sub .track{height:6px; border-radius:3px; background:var(--surface3); overflow:hidden}
+.sub .track i{display:block; height:100%; background:var(--accent); border-radius:3px}
+.kv{display:flex; flex-wrap:wrap; gap:4px 16px; font-family:var(--mono); font-size:11px; color:var(--ink3); margin-top:10px}
+.kv b{color:var(--ink2); font-weight:500}
+
+/* ---------- flow bars ---------- */
+.flows{display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:10px}
+.flow-card{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 15px 15px}
+.flow-card h3{font-size:13.5px; margin-bottom:2px}
+.flow-card p{margin:0 0 12px; font-size:11.5px; color:var(--ink3)}
+.frow{display:grid; grid-template-columns:96px 1fr 84px; align-items:center; gap:10px; padding:3.5px 0}
+.frow .nm{font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.frow .amt{font-family:var(--mono); font-size:11.5px; text-align:right}
+.fbar{position:relative; height:14px}
+.fbar .axis-line{position:absolute; left:50%; top:-1px; bottom:-1px; width:1px; background:var(--axis)}
+.fbar i{position:absolute; top:3px; height:8px; border-radius:2px}
+.fbar i.p{background:var(--c-up); border-radius:2px 4px 4px 2px}
+.fbar i.n{background:var(--c-down); border-radius:4px 2px 2px 4px}
+
+/* ---------- yields ---------- */
+.pool-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(278px,1fr)); gap:10px}
+.pool{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:13px 14px; display:flex; flex-direction:column; gap:8px}
+.pool .top{display:flex; align-items:flex-start; gap:8px}
+.pool .sym{font-family:var(--mono); font-size:13.5px; font-weight:600; line-height:1.3; word-break:break-word}
+.pool .proj{font-size:11px; color:var(--ink3); font-family:var(--mono)}
+.pool .apy{margin-left:auto; text-align:right; flex:none}
+.pool .apy b{font-family:var(--mono); font-size:20px; font-weight:600; letter-spacing:-.02em; display:block; line-height:1.15}
+.pool .apy span{font-size:10px; color:var(--ink3); font-family:var(--mono)}
+.split{height:6px; border-radius:3px; overflow:hidden; display:flex; background:var(--surface3)}
+.split i.base{background:var(--s1)} .split i.rew{background:var(--s2)}
+.pool .legend2{display:flex; gap:10px; font-family:var(--mono); font-size:10px; color:var(--ink3); flex-wrap:wrap}
+.pool .foot{display:flex; gap:5px; flex-wrap:wrap; margin-top:auto; padding-top:2px}
+
+/* ---------- editorial ---------- */
+.notebook{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:10px}
+.card{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px 17px 18px}
+.card h3{font-size:14px; margin-bottom:9px; display:flex; align-items:center; gap:8px}
+.card h3 .idx{font-family:var(--mono); font-size:10.5px; color:var(--accent); background:var(--accent-soft);
+  padding:1px 6px; border-radius:3px; font-weight:500}
+.card p{margin:0 0 9px; font-size:13px; color:var(--ink2); line-height:1.72}
+.card p:last-child{margin-bottom:0}
+.card ul{margin:0; padding-left:17px; font-size:13px; color:var(--ink2); line-height:1.72}
+.card li{margin-bottom:6px} .card li:last-child{margin-bottom:0}
+.card strong{color:var(--ink); font-weight:600}
+code{font-family:var(--mono); font-size:11.5px; background:var(--surface3); padding:1px 5px; border-radius:3px; color:var(--ink)}
+
+/* ---------- misc ---------- */
+.msg{background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--amber);
+  border-radius:8px; padding:12px 14px; font-size:12.5px; color:var(--ink2); line-height:1.65}
+.msg b{color:var(--ink)}
+.skel{background:linear-gradient(90deg,var(--surface3) 25%,var(--surface2) 50%,var(--surface3) 75%);
+  background-size:200% 100%; animation:sh 1.5s linear infinite; border-radius:4px; color:transparent!important}
+@keyframes sh{to{background-position:-200% 0}}
+.empty{padding:34px 16px; text-align:center; color:var(--ink3); font-size:13px}
+footer{margin-top:44px; padding-top:18px; border-top:1px solid var(--border); color:var(--ink3); font-size:11.5px; line-height:1.8}
+footer a{color:var(--ink2)}
+@media (prefers-reduced-motion:reduce){ *{animation-duration:.01ms!important; transition-duration:.01ms!important} }
+.sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+</style>
+
+<div class="bar">
+  <div class="bar-in">
+    <div class="brand"><b>链上牌桌</b><span>DEFI DESK</span></div>
+    <span class="pill" id="status" aria-live="polite"><span class="dot" id="statusDot"></span><span id="statusText">正在连接数据源…</span></span>
+    <span class="pill" title="距离下次自动刷新"><span id="countdown" class="num">--:--</span></span>
+    <select class="btn" id="interval" aria-label="自动刷新间隔">
+      <option value="60000">1 分钟</option>
+      <option value="300000" selected>5 分钟</option>
+      <option value="900000">15 分钟</option>
+      <option value="0">手动</option>
+    </select>
+    <button class="btn primary" id="refresh">刷新</button>
+    <button class="btn" id="deltaMode" aria-pressed="false" title="切换涨跌配色（加密习惯绿涨红跌 / A股习惯红涨绿跌）">绿涨红跌</button>
+    <button class="btn" id="theme" aria-pressed="false" title="切换深浅色">深色</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <header class="mast">
+    <h1>别人看价格，我们看现金流和资金流向</h1>
+    <p>一张为老玩家做的 DeFi 研究台：实时拉取链上 TVL、协议费用与收入、稳定币供给、DEX 量能与收益池数据，按「动量 / 现金流 / 估值 / 健康度」四个维度打分，把靠补贴堆出来的假增长和真有交易量支撑的趋势标的分开。</p>
+    <div class="rail">
+      <span class="tag">数据源 DefiLlama 公开 API</span>
+      <span class="tag">浏览器直连 · 不经任何中间服务器</span>
+      <span class="tag">默认 5 分钟自动刷新</span>
+      <span class="tag">非投资建议</span>
+    </div>
+  </header>
+
+  <section id="pulse">
+    <div class="sec-head">
+      <span class="eyebrow">01 / 体温</span>
+      <h2>市场体温</h2>
+      <span class="note" id="pulseNote">—</span>
+    </div>
+    <p class="sec-sub">先看水位再看牌。TVL 决定舞台大小，稳定币供给决定场内还有多少子弹，费用和 DEX 量能决定这些钱有没有在真干活。</p>
+    <div class="risk-band" id="riskBand"></div>
+    <div class="kpis" id="kpis"></div>
+  </section>
+
+  <section id="curves">
+    <div class="sec-head">
+      <span class="eyebrow">02 / 曲线</span>
+      <h2>水位与弹药</h2>
+      <span class="note">近 120 天 · 每日快照</span>
+    </div>
+    <p class="sec-sub">两条线分开看：TVL 会随币价被动涨跌，稳定币供给不会——它是实打实的资金进出。两者背离的时候，通常是行情的转折点。</p>
+    <div class="charts">
+      <div class="chart-card">
+        <header><h3>全网 TVL</h3><span class="val num" id="tvlNow">—</span></header>
+        <div class="legend"><span class="swatch" style="background:var(--s1)"></span>锁仓总量（含币价涨跌影响）</div>
+        <div class="chart-wrap" id="tvlChart"></div>
+      </div>
+      <div class="chart-card">
+        <header><h3>稳定币总供给</h3><span class="val num" id="stableNow">—</span></header>
+        <div class="legend"><span class="swatch" style="background:var(--s2)"></span>场内待命资金（增发＝新钱进场）</div>
+        <div class="chart-wrap" id="stableChart"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="radar">
+    <div class="sec-head">
+      <span class="eyebrow">03 / 雷达</span>
+      <h2>趋势雷达</h2>
+      <span class="note" id="radarNote">—</span>
+    </div>
+    <p class="sec-sub">点任意一行展开：会给出这个协议的四项细分得分和一句人话点评。<strong>综合分只是排序工具，不是买入信号</strong>——真正要看的是「TVL 在涨的同时，费用有没有跟着涨」。</p>
+    <div class="controls">
+      <div class="tabs" role="tablist" aria-label="榜单视角" id="presets"></div>
+      <input type="search" class="field" id="q" placeholder="搜索协议…" aria-label="搜索协议" style="width:150px">
+      <select class="field" id="chainFilter" aria-label="按链筛选"><option value="">全部链</option></select>
+      <select class="field" id="catFilter" aria-label="按赛道筛选"><option value="">全部赛道</option></select>
+      <select class="field" id="minTvl" aria-label="最小 TVL">
+        <option value="3000000">TVL ≥ $3M</option>
+        <option value="10000000" selected>TVL ≥ $10M</option>
+        <option value="50000000">TVL ≥ $50M</option>
+        <option value="200000000">TVL ≥ $200M</option>
+      </select>
+      <button class="btn" id="watchOnly" aria-pressed="false">★ 只看自选</button>
+    </div>
+    <div class="tbl-wrap">
+      <table id="radarTable">
+        <thead><tr id="radarHead"></tr></thead>
+        <tbody id="radarBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="flows">
+    <div class="sec-head">
+      <span class="eyebrow">04 / 流向</span>
+      <h2>钱从哪来，到哪去</h2>
+      <span class="note">近 7 日 · 按协议 TVL 聚合口径</span>
+    </div>
+    <p class="sec-sub">资金轮动比单个项目更早给出信号。一条链的 TVL 连续两周净流入、同时链上稳定币也在增加，那是真有人搬家；只有 TVL 涨而稳定币不动，多半是币价涨出来的幻觉。</p>
+    <div class="flows">
+      <div class="flow-card">
+        <h3>公链 7 日资金净变化</h3>
+        <p>按该链上所有协议 TVL 汇总计算，已剔除质押 / 借出等重复口径</p>
+        <div id="chainFlowUp"></div>
+      </div>
+      <div class="flow-card">
+        <h3>赛道 7 日资金净变化</h3>
+        <p>同口径按赛道汇总，看资金在借贷 / DEX / LST / RWA 之间怎么挪</p>
+        <div id="catFlow"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="cash">
+    <div class="sec-head">
+      <span class="eyebrow">05 / 现金流</span>
+      <h2>真实现金流榜</h2>
+      <span class="note">近 30 日费用 · 含增速与估值倍数</span>
+    </div>
+    <p class="sec-sub">费用是用户真金白银付的，代币排放不是。这张表回答两个问题：谁在赚钱，以及这份赚钱能力值不值现在的市值（P/F = 市值 ÷ 年化费用）。</p>
+    <div class="tbl-wrap">
+      <table id="cashTable">
+        <thead><tr>
+          <th class="l">协议</th><th>30日费用</th><th>7日费用</th><th>24h</th>
+          <th>费用 30日变化</th><th>协议留存率</th><th>年化费率/TVL</th><th>P/F</th>
+        </tr></thead>
+        <tbody id="cashBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="yield">
+    <div class="sec-head">
+      <span class="eyebrow">06 / 收益</span>
+      <h2>收益机会台</h2>
+      <span class="note" id="yieldNote">按需加载 · 数据包较大</span>
+    </div>
+    <p class="sec-sub">每个池子都拆开「真实收益」和「代币补贴」两段。补贴占比越高，APY 的保质期越短——那是排放，不是收入。已过滤 TVL 过小和被标记为异常值的池子。</p>
+    <div class="controls">
+      <div class="tabs" role="tablist" aria-label="收益档位" id="yieldTabs"></div>
+      <select class="field" id="poolChain" aria-label="按链筛选收益池"><option value="">全部链</option></select>
+      <button class="btn primary" id="loadPools">加载收益池数据</button>
+    </div>
+    <div id="poolArea"><div class="empty">点「加载收益池数据」拉取全网约 1.5 万个收益池并按老玩家的口径过滤排序。</div></div>
+  </section>
+
+  <section id="method">
+    <div class="sec-head">
+      <span class="eyebrow">07 / 方法</span>
+      <h2>怎么读这些数字</h2>
+    </div>
+    <p class="sec-sub">下面是这个页面的全部计算口径，以及我这些年踩过的坑。看不懂指标就别下注——这是最便宜的风控。</p>
+    <div class="notebook">
+      <div class="card">
+        <h3><span class="idx">评分</span>综合分怎么来的</h3>
+        <p>四个分项各自归一化到 0–100（用 <code>tanh</code> 做饱和处理，避免极端值霸榜），再按当前榜单视角加权。缺失的分项不补零，而是把权重按比例分给其余项——没有费用数据不等于没有收入。</p>
+        <ul>
+          <li><strong>动量</strong>：7 日与 30 日 TVL 变化，7 日权重更高</li>
+          <li><strong>现金流</strong>：年化费率（30 日费用 ×12.17 ÷ TVL）＋ 费用 30 日增速</li>
+          <li><strong>估值</strong>：市值/TVL 与 P/F，越低分越高；未发币不计分</li>
+          <li><strong>健康度</strong>：TVL 体量、多链分散度、是否存在增长与收入背离</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3><span class="idx">陷阱</span>TVL 会骗人的四种方式</h3>
+        <ul>
+          <li><strong>重复计算</strong>：ETH 存进 LST 再存进借贷再进 LP，一份钱在三处 TVL 里各算一次</li>
+          <li><strong>币价幻觉</strong>：TVL 用美元计价，币价涨 30% 时 TVL 自动涨 30%，一个新用户都没有</li>
+          <li><strong>雇佣资本</strong>：高排放吸引来的 TVL，减产公告当天就能跑掉一半</li>
+          <li><strong>自有资金</strong>：项目方国库、做市商回购的仓位也算 TVL，那不是市场需求</li>
+        </ul>
+        <p>所以本页把「TVL 涨但费用不涨」单独标成 <span class="chip r">补贴空转</span>，这是最值钱的一个标签。</p>
+      </div>
+      <div class="card">
+        <h3><span class="idx">尽调</span>下注前的七个问题</h3>
+        <ul>
+          <li>收入来自谁？用户手续费，还是代币排放左手倒右手</li>
+          <li>协议自己留存多少？<code>收入 ÷ 费用</code> 低于 10% 说明钱都给了 LP</li>
+          <li>解锁表在哪？未来 6 个月的释放量是流通量的百分之几</li>
+          <li>TVL 集中在几个地址？前十大占比超过 50% 就是随时能走的钱</li>
+          <li>依赖哪个预言机和跨链桥？这是 DeFi 最常见的爆点</li>
+          <li>合约改过几次？升级权限在多签还是单私钥手里</li>
+          <li>最坏情况我能承受吗？仓位大小永远比标的选择更决定生死</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3><span class="idx">节奏</span>什么时候该看什么</h3>
+        <p><strong>稳定币在增发</strong>：新钱进场，先看高 Beta 的新协议和激励活动，这是攻的时候。</p>
+        <p><strong>稳定币在收缩、TVL 却在涨</strong>：币价拉动的虚胖，此时追高最危险，该往稳定币收益和蓝筹现金流上退。</p>
+        <p><strong>费用增速跑赢 TVL 增速</strong>：存量资金效率在提升，是最健康的一种上涨，也是最容易被忽略的买点。</p>
+        <p><strong>DEX 7 日均量低于 30 日均量</strong>：量能在萎缩，任何「TVL 创新高」的叙事都要打折。</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>数据来自 <a href="https://defillama.com" target="_blank" rel="noopener">DefiLlama</a> 公开 API（protocols / fees / dexs / stablecoins / yields），由你的浏览器直接请求，本页不存储也不转发任何数据；自选清单只保存在你自己的浏览器里。</p>
+    <p>费用与市值数据依赖 DefiLlama 的适配器覆盖，部分协议的费用按母协议口径归集，展开行内会标注。TVL 为美元计价，含币价波动与跨协议重复计算。</p>
+    <p><b>本页面是数据分析工具，不构成任何投资建议。</b>DeFi 存在智能合约、预言机、跨链桥、稳定币脱锚与监管等多重风险，本金可能归零。自己做研究，自己承担后果。</p>
+  </footer>
+</div>
+
+<script>
+/* ============================================================
+   链上牌桌 / DeFi Desk
+   全部计算在浏览器本地完成，数据源为 DefiLlama 公开 API
+   ============================================================ */
+(function(){
+"use strict";
+
+/* ---------- 数据源 ---------- */
+var OV = "?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true";
+var EP = {
+  lite:    "https://api.llama.fi/lite/protocols2",
+  protos:  "https://api.llama.fi/protocols",
+  chains:  "https://api.llama.fi/v2/chains",
+  tvlHist: "https://api.llama.fi/v2/historicalChainTvl",
+  fees:    "https://api.llama.fi/overview/fees" + OV,
+  revenue: "https://api.llama.fi/overview/fees" + OV + "&dataType=dailyRevenue",
+  dexs:    "https://api.llama.fi/overview/dexs" + OV,
+  stables: "https://stablecoins.llama.fi/stablecoincharts/all",
+  pools:   "https://yields.llama.fi/pools"
+};
+var DAY = 86400000, MONTH_DAYS = 30.44, YEAR_OVER_30D = 365.25 / 30.44;
+
+/* ---------- 小工具 ---------- */
+var $ = function(id){ return document.getElementById(id); };
+var el = function(tag, cls, html){
+  var n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (html != null) n.innerHTML = html;
+  return n;
+};
+var num = function(v){ var x = typeof v === "string" ? parseFloat(v) : v;
+  return (typeof x === "number" && isFinite(x)) ? x : null; };
+var esc = function(s){ return String(s == null ? "" : s)
+  .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); };
+
+function fmtUsd(v, dp){
+  var n = num(v); if (n === null) return "—";
+  var s = n < 0 ? "-" : "", a = Math.abs(n), d = dp == null ? 2 : dp;
+  if (a >= 1e12) return s + "$" + (a/1e12).toFixed(d) + "T";
+  if (a >= 1e9)  return s + "$" + (a/1e9).toFixed(d) + "B";
+  if (a >= 1e6)  return s + "$" + (a/1e6).toFixed(d) + "M";
+  if (a >= 1e3)  return s + "$" + (a/1e3).toFixed(a >= 1e5 ? 0 : 1) + "K";
+  return s + "$" + a.toFixed(0);
+}
+function fmtPct(v, d){
+  var n = num(v); if (n === null) return "—";
+  return n.toFixed(d == null ? 1 : d) + "%";
+}
+function fmtApr(v){
+  var n = num(v);
+  if (n === null) return "—";
+  if (n >= 1000) return '<span style="color:var(--amber)" title="费用适配器与 TVL 口径可能不匹配，比率不可用">口径存疑</span>';
+  return fmtPct(n, n < 10 ? 2 : 1);
+}
+function fmtX(v, d){
+  var n = num(v); if (n === null) return "—";
+  if (n >= 1000) return "—";
+  return n.toFixed(d == null ? 1 : d) + "x";
+}
+function signCls(v){ var n = num(v); if (n === null) return "flat";
+  return n > 0.05 ? "up" : (n < -0.05 ? "down" : "flat"); }
+function arrow(v){ var n = num(v); if (n === null) return "";
+  return n > 0.05 ? "▲" : (n < -0.05 ? "▼" : "·"); }
+function deltaHTML(v, d){
+  var n = num(v);
+  if (n === null) return '<span class="delta flat">—</span>';
+  return '<span class="delta ' + signCls(n) + '">' + arrow(n) + " " +
+         (n > 0 ? "+" : "") + n.toFixed(d == null ? 1 : d) + "%</span>";
+}
+function pctChange(now, then){
+  var a = num(now), b = num(then);
+  if (a === null || b === null || b === 0) return null;
+  var r = (a - b) / Math.abs(b) * 100;
+  return isFinite(r) ? r : null;
+}
+function norm(s){ return String(s == null ? "" : s).toLowerCase()
+  .replace(/[\s._'’\-]/g, "").replace(/finance$|protocol$/, ""); }
+function baseName(s){ return norm(s).replace(/v\d+(\.\d+)?$/, ""); }
+
+/* 归一化打分：tanh 饱和，避免极端值霸榜 */
+function scSigned(x, ref){ var n = num(x); if (n === null) return null;
+  return 50 + 50 * Math.tanh(n / ref); }
+function scPos(x, ref){ var n = num(x); if (n === null) return null;
+  return 100 * Math.tanh(Math.max(0, n) / ref); }
+function scInv(x, ref){ var n = num(x); if (n === null || n <= 0) return null;
+  return 100 * Math.exp(-n / ref); }
+function wavg(parts){ /* [[score, weight]] 缺失项把权重按比例分给其余项 */
+  var s = 0, w = 0, i;
+  for (i = 0; i < parts.length; i++){
+    if (parts[i][0] === null || parts[i][0] === undefined) continue;
+    s += parts[i][0] * parts[i][1]; w += parts[i][1];
+  }
+  return w > 0 ? s / w : null;
+}
+function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
+
+/* ---------- 本地存储（仅存自选与偏好，失败静默降级） ---------- */
+var store = {
+  get: function(k, dflt){
+    try { var v = localStorage.getItem("defidesk." + k);
+      return v === null ? dflt : JSON.parse(v); } catch (e){ return dflt; }
+  },
+  set: function(k, v){
+    try { localStorage.setItem("defidesk." + k, JSON.stringify(v)); } catch (e){}
+  }
+};
+
+/* ---------- 全局状态 ---------- */
+var S = {
+  protos: [], chains: [], cats: [], tvlSeries: [], stableSeries: [],
+  kpi: {}, pools: null, poolsLoading: false,
+  updatedAt: null, errors: [], loading: false,
+  sortKey: "score", sortDir: -1, preset: "alpha", openRow: null,
+  watch: store.get("watch", []), yieldTab: "stable", expanded: {},
+  protoIndex: {}, protoByName: {}, feeIdx: null, revIdx: null, dexIdx: null
+};
+var watchSet = function(){ var m = {}, i;
+  for (i = 0; i < S.watch.length; i++) m[S.watch[i]] = 1; return m; };
+
+/* ============================================================
+   一、拉取与归一化
+   ============================================================ */
+function grab(url, label){
+  return fetch(url, { cache: "no-store" }).then(function(r){
+    if (!r.ok) throw new Error(label + " HTTP " + r.status);
+    return r.json();
+  }).then(function(j){ return { ok: true, label: label, data: j }; })
+    .catch(function(e){ return { ok: false, label: label, error: String(e.message || e) }; });
+}
+
+function rowsOf(payload){
+  if (!payload) return [];
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload.protocols)) return payload.protocols;
+  if (Array.isArray(payload.data)) return payload.data;
+  return [];
+}
+
+function indexOverview(payload){
+  var rows = rowsOf(payload), byId = {}, byName = {}, byBase = {}, i, r, id, n, b;
+  for (i = 0; i < rows.length; i++){
+    r = rows[i];
+    id = r.defillamaId != null ? String(r.defillamaId) : null;
+    if (id) byId[id] = r;
+    n = norm(r.name || r.displayName);
+    if (n && (!byName[n] || (num(r.total30d) || 0) > (num(byName[n].total30d) || 0))) byName[n] = r;
+    b = baseName(r.name || r.displayName);
+    if (b && (!byBase[b] || (num(r.total30d) || 0) > (num(byBase[b].total30d) || 0))) byBase[b] = r;
+  }
+  return { rows: rows, byId: byId, byName: byName, byBase: byBase, total: payload };
+}
+
+/* 把费用/收入/成交量适配器匹配到协议：id > 全名 > 母协议名 > 去版本号 */
+function matchRow(idx, p){
+  var r;
+  if (p.id && idx.byId[p.id]) return { row: idx.byId[p.id], kind: "exact" };
+  r = idx.byName[norm(p.name)];
+  if (r) return { row: r, kind: "exact" };
+  if (p.parent){
+    r = idx.byName[norm(p.parent)];
+    if (r) return { row: r, kind: "parent" };
+  }
+  r = idx.byBase[baseName(p.name)];
+  if (r) return { row: r, kind: "approx" };
+  return { row: null, kind: null };
+}
+
+var SKIP_KEY = { staking:1, pool2:1, borrowed:1, vesting:1, offers:1, treasury:1, dcs:1, masterchef:1 };
+var SKIP_CAT = { CEX:1, "Canonical Bridge":1 };
+
+function normProtocols(lite, legacy){
+  var parents = {}, arr = [], out = [], i, j, r, tvl, d1, d7, d30, chains, k, ct, key;
+  if (lite && Array.isArray(lite.parentProtocols)){
+    for (i = 0; i < lite.parentProtocols.length; i++)
+      parents[lite.parentProtocols[i].id] = lite.parentProtocols[i].name;
+  }
+  arr = (lite && Array.isArray(lite.protocols)) ? lite.protocols : (Array.isArray(legacy) ? legacy : []);
+  for (i = 0; i < arr.length; i++){
+    r = arr[i];
+    tvl = num(r.tvl);
+    if (tvl === null || tvl < 100000) continue;
+    if (r.category && SKIP_CAT[r.category]) continue;
+    d1  = num(r.change_1d); if (d1  === null) d1  = pctChange(tvl, r.tvlPrevDay);
+    d7  = num(r.change_7d); if (d7  === null) d7  = pctChange(tvl, r.tvlPrevWeek);
+    d30 = num(r.change_1m); if (d30 === null) d30 = pctChange(tvl, r.tvlPrevMonth);
+    chains = Array.isArray(r.chains) ? r.chains.slice() : (r.chain ? [r.chain] : []);
+    ct = {};
+    if (r.chainTvls && typeof r.chainTvls === "object"){
+      for (k in r.chainTvls){
+        if (!Object.prototype.hasOwnProperty.call(r.chainTvls, k)) continue;
+        if (k.indexOf("-") >= 0 || SKIP_KEY[k.toLowerCase()]) continue;
+        var v = r.chainTvls[k];
+        var cur = (v && typeof v === "object") ? num(v.tvl) : num(v);
+        var prev = (v && typeof v === "object") ? num(v.tvlPrevWeek) : null;
+        if (cur === null) continue;
+        ct[k] = { tvl: cur, prev7: prev };
+      }
+    }
+    if (!chains.length){ for (key in ct) chains.push(key); }
+    out.push({
+      id: r.defillamaId != null ? String(r.defillamaId) : (r.id != null ? String(r.id) : null),
+      name: r.name || "—",
+      slug: r.slug || String(r.name || "").toLowerCase().replace(/\s+/g, "-"),
+      logo: r.logo || "",
+      symbol: (r.symbol && r.symbol !== "-") ? r.symbol : "",
+      category: r.category || "其他",
+      parent: r.parentProtocol ? (parents[r.parentProtocol] || null) : null,
+      chains: chains, chainTvls: ct,
+      tvl: tvl, d1: d1, d7: d7, d30: d30,
+      mcap: num(r.mcap), listedAt: num(r.listedAt)
+    });
+  }
+  return out;
+}
+
+function seriesFrom(arr, pick){
+  var out = [], i, t, v;
+  if (!Array.isArray(arr)) return out;
+  for (i = 0; i < arr.length; i++){
+    t = num(arr[i].date);
+    if (t === null) continue;
+    if (t < 1e11) t *= 1000;
+    v = pick(arr[i]);
+    if (v === null) continue;
+    out.push({ t: t, v: v });
+  }
+  out.sort(function(a, b){ return a.t - b.t; });
+  return out;
+}
+function pickPegged(o){
+  var c = o.totalCirculatingUSD || o.totalCirculating;
+  if (!c) return null;
+  if (typeof c === "number") return num(c);
+  var s = 0, k, hit = false;
+  for (k in c){ var x = num(c[k]); if (x !== null){ s += x; hit = true; } }
+  return hit ? s : null;
+}
+function agoValue(series, days){
+  if (!series.length) return null;
+  var target = series[series.length - 1].t - days * DAY, i, best = null;
+  for (i = series.length - 1; i >= 0; i--){
+    if (series[i].t <= target){ best = series[i].v; break; }
+  }
+  return best === null ? (series.length > days ? series[series.length - 1 - Math.round(days)].v : null) : best;
+}
+
+/* ============================================================
+   二、派生指标与评分
+   ============================================================ */
+function enrich(protos, feeIdx, revIdx, dexIdx){
+  var i, p, fm, rm, dm, f, rv, dx;
+  for (i = 0; i < protos.length; i++){
+    p = protos[i];
+    fm = matchRow(feeIdx, p); f = fm.row;
+    rm = matchRow(revIdx, p); rv = rm.row;
+    dm = matchRow(dexIdx, p); dx = dm.row;
+    p.feeKind  = fm.kind;
+    p.fees24   = f ? num(f.total24h) : null;
+    p.fees7    = f ? num(f.total7d)  : null;
+    p.fees30   = f ? num(f.total30d) : null;
+    p.feeD7    = f ? num(f.change_7d) : null;
+    p.feeD30   = f ? num(f.change_1m) : null;
+    p.rev30    = rv ? num(rv.total30d) : null;
+    p.vol30    = dx ? num(dx.total30d) : null;
+    p.vol24    = dx ? num(dx.total24h) : null;
+    p.feeApr   = (p.fees30 !== null && p.tvl > 0) ? p.fees30 * YEAR_OVER_30D / p.tvl * 100 : null;
+    p.pf       = (p.mcap !== null && p.fees30 !== null && p.fees30 > 0) ? p.mcap / (p.fees30 * YEAR_OVER_30D) : null;
+    p.mcapTvl  = (p.mcap !== null && p.tvl > 0) ? p.mcap / p.tvl : null;
+    p.retention= (p.rev30 !== null && p.fees30 !== null && p.fees30 > 0) ? p.rev30 / p.fees30 * 100 : null;
+    p.volTvl   = (p.vol30 !== null && p.tvl > 0) ? p.vol30 / MONTH_DAYS / p.tvl : null;
+    p.fresh    = p.listedAt !== null && (Date.now() / 1000 - p.listedAt) < 200 * 86400;
+    score(p);
+  }
+  return protos;
+}
+
+function score(p){
+  /* 动量 */
+  p.sM = wavg([[scSigned(p.d7, 22), 0.62], [scSigned(p.d30, 55), 0.38]]);
+  /* 现金流质量 */
+  p.sR = wavg([[scPos(p.feeApr, 14), 0.55], [scSigned(p.feeD30, 60), 0.30],
+               [scPos(p.retention, 45), 0.15]]);
+  /* 估值（未发币或无费用数据时该项缺失，不补零） */
+  p.sV = wavg([[scInv(p.mcapTvl, 2.0), 0.5], [scInv(p.pf, 28), 0.5]]);
+  /* 背离：TVL 猛涨但费用没跟上 —— 最值钱的一个信号 */
+  p.divergent = (p.d7 !== null && p.d7 > 15) &&
+    ((p.feeD7 !== null && p.feeD7 < 0) || (p.feeApr !== null && p.feeApr < 0.6));
+  p.converged = (p.d7 !== null && p.d7 > 8) && (p.feeD7 !== null && p.feeD7 > 8);
+  /* 健康度 */
+  var h = 70, nc = p.chains.length;
+  if (p.tvl > 1e9) h += 13; else if (p.tvl > 2e8) h += 9; else if (p.tvl > 5e7) h += 5;
+  if (p.tvl < 2e7) h -= 10;
+  if (nc >= 5) h += 8; else if (nc >= 2) h += 4; else h -= 6;
+  if (p.feeApr !== null && p.feeApr > 3) h += 6;
+  if (p.feeApr === null) h -= 4;
+  if (p.mcapTvl !== null){ if (p.mcapTvl > 8) h -= 20; else if (p.mcapTvl > 4) h -= 9; }
+  if (p.divergent) h -= 22;
+  if (p.d1 !== null && Math.abs(p.d1) > 55) h -= 12;
+  if (p.d30 !== null && p.d30 < -35) h -= 8;
+  p.sH = clamp(h, 0, 100);
+  p.tags = tagsOf(p);
+  p.take = takeOf(p);
+}
+
+var PRESETS = [
+  { id:"alpha",  name:"综合潜力", w:{M:.34,R:.28,V:.20,H:.18},
+    hint:"动量、现金流、估值、健康度四项加权，找综合面最顺的标的" },
+  { id:"cash",   name:"真实现金流", w:{M:.15,R:.55,V:.22,H:.08},
+    hint:"以费用收入和留存率为主，看谁真的在赚钱而不是发币" },
+  { id:"early",  name:"早期爆发", w:{M:.50,R:.24,V:.10,H:.16},
+    hint:"限定 TVL $10M–$600M 且市值不高，找还没被定价的增量" },
+  { id:"value",  name:"估值折价", w:{M:.14,R:.30,V:.46,H:.10},
+    hint:"市值/TVL 与 P/F 双低，老钱喜欢的位置" },
+  { id:"drain",  name:"资金外逃", w:{M:.34,R:.28,V:.20,H:.18},
+    hint:"按 7 日 TVL 跌幅排序，反向观察：谁在被抛弃，为什么" }
+];
+function presetById(id){
+  for (var i = 0; i < PRESETS.length; i++) if (PRESETS[i].id === id) return PRESETS[i];
+  return PRESETS[0];
+}
+function composite(p, preset){
+  var w = presetById(preset).w;
+  var base = wavg([[p.sM, w.M], [p.sR, w.R], [p.sV, w.V], [p.sH, w.H]]);
+  if (base === null) return null;
+  if (preset === "early"){
+    /* 体量甜区加成：太小是噪音，太大跑不动 */
+    var band = (p.tvl >= 1e7 && p.tvl <= 6e8) ? 6 : (p.tvl > 6e8 ? -8 : -4);
+    var unlisted = (p.mcap === null && p.tvl > 3e7) ? 5 : 0;
+    base += band + unlisted;
+  }
+  return clamp(base, 0, 100);
+}
+
+function tagsOf(p){
+  var t = [];
+  if (p.converged) t.push({ k:"g", s:"真实增长" });
+  if (p.divergent) t.push({ k:"r", s:"补贴空转" });
+  if (p.feeApr !== null && p.feeApr >= 25) t.push({ k:"g", s:"现金流强" });
+  if (p.mcapTvl !== null && p.mcapTvl <= 0.6 && p.fees30 !== null) t.push({ k:"b", s:"估值折价" });
+  if (p.mcapTvl !== null && p.mcapTvl >= 6) t.push({ k:"a", s:"估值透支" });
+  if (p.mcap === null && p.tvl > 5e7) t.push({ k:"b", s:"未发币" });
+  if (p.d30 !== null && p.d30 <= -25) t.push({ k:"r", s:"资金流出" });
+  if (p.fresh) t.push({ k:"n", s:"新协议" });
+  if (p.chains.length === 1) t.push({ k:"n", s:"单链" });
+  if (p.retention !== null && p.retention < 8) t.push({ k:"a", s:"留存低" });
+  return t.slice(0, 4);
+}
+
+/* 一句话点评：用真实数字拼，不说空话 */
+function takeOf(p){
+  var n = function(v, d){ return '<em>' + (v === null ? "—" : (v > 0 && d !== 0 ? "+" : "") + num(v).toFixed(d == null ? 1 : d) + "%") + '</em>'; };
+  var money = function(v){ return '<em>' + fmtUsd(v) + '</em>'; };
+  var s = [];
+  if (p.divergent){
+    s.push("7 日 TVL " + n(p.d7) + "，但同期费用" +
+      (p.feeD7 !== null ? "变化 " + n(p.feeD7) : "几乎没有起色") +
+      "，年化费率只有 " + n(p.feeApr) + "——典型的激励堆量，补贴停了 TVL 大概率原路返回。");
+  } else if (p.converged){
+    s.push("7 日 TVL " + n(p.d7) + " 且费用同步 " + n(p.feeD7) +
+      "，增长有真实使用量托底，不是刷出来的。");
+  } else if (p.d7 !== null && p.d7 < -15){
+    s.push("7 日 TVL " + n(p.d7) + "，30 日 " + n(p.d30) + "，资金在撤。" +
+      (p.feeApr !== null && p.feeApr > 10 ? "但费率仍有 " + n(p.feeApr) + "，可能是价格下跌而非用户流失，值得分辨。"
+       : "先确认是行情普跌还是协议本身出了问题。"));
+  } else if (p.d7 !== null && p.d7 > 5){
+    s.push("7 日 TVL " + n(p.d7) + "，" + (p.feeApr !== null ? "年化费率 " + n(p.feeApr) + "，" : "") + "属于温和流入。");
+  } else {
+    s.push("TVL 近一周基本走平（" + n(p.d7) + "），" + (p.d30 !== null ? "一个月维度 " + n(p.d30) + "。" : "缺少月度对比数据。"));
+  }
+  if (p.mcapTvl !== null){
+    if (p.mcapTvl <= 0.6) s.push("市值仅为 TVL 的 <em>" + p.mcapTvl.toFixed(2) + "x</em>" +
+      (p.pf !== null ? "、P/F <em>" + p.pf.toFixed(1) + "x</em>" : "") + "，在同体量里偏便宜。");
+    else if (p.mcapTvl >= 6) s.push("市值是 TVL 的 <em>" + p.mcapTvl.toFixed(1) + "x</em>" +
+      (p.pf !== null ? "、P/F <em>" + p.pf.toFixed(0) + "x</em>" : "") + "，估值已经把未来几年的增长提前吃掉了。");
+    else if (p.pf !== null) s.push("P/F <em>" + p.pf.toFixed(1) + "x</em>，估值处在中性区间。");
+  } else if (p.tvl > 5e7){
+    s.push("尚未发现代币市值数据，" + money(p.tvl) + " 的体量若确实未发币，本身就是一条积分 / 空投线索。");
+  }
+  if (p.retention !== null && p.retention < 8 && p.fees30 !== null)
+    s.push("30 日费用 " + money(p.fees30) + " 里协议只留下 <em>" + p.retention.toFixed(1) + "%</em>，剩下全给了 LP —— 对代币持有人意义有限。");
+  else if (p.retention !== null && p.retention > 55)
+    s.push("协议留存 <em>" + p.retention.toFixed(0) + "%</em> 的费用，对代币持有人是实打实的现金流。");
+  if (p.chains.length === 1 && p.tvl > 1e8)
+    s.push("全部押在 " + esc(p.chains[0]) + " 一条链上，链层面的风险无法分散。");
+  return s.slice(0, 3).join("");
+}
+
+/* ============================================================
+   三、图表（手写 SVG，含十字准星）
+   ============================================================ */
+function areaChart(host, series, opt){
+  host.innerHTML = "";
+  if (!series || series.length < 2){
+    host.appendChild(el("div", "empty", "暂无历史数据"));
+    return;
+  }
+  var W = Math.round(clamp(host.clientWidth || 620, 300, 1100)), H = 186, pad = { t: 12, r: 52, b: 22, l: 10 };
+  var pw = W - pad.l - pad.r, ph = H - pad.t - pad.b;
+  var lo = Infinity, hi = -Infinity, i;
+  for (i = 0; i < series.length; i++){ lo = Math.min(lo, series[i].v); hi = Math.max(hi, series[i].v); }
+  var span = hi - lo || hi || 1;
+  lo -= span * 0.12; hi += span * 0.1;
+  if (lo < 0) lo = 0;
+  var X = function(k){ return pad.l + pw * (k / (series.length - 1)); };
+  var Y = function(v){ return pad.t + ph * (1 - (v - lo) / (hi - lo)); };
+
+  var NS = "http://www.w3.org/2000/svg";
+  var svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", opt.label || "趋势图");
+  var mk = function(t, a){ var n = document.createElementNS(NS, t), k;
+    for (k in a) n.setAttribute(k, a[k]); return n; };
+
+  /* 网格 + y 轴刻度：每条刻度都标出图上实际到达的量级 */
+  var ticks = [lo + (hi - lo) * 0.08, lo + (hi - lo) * 0.5, hi - (hi - lo) * 0.06];
+  for (i = 0; i < ticks.length; i++){
+    var ty = Y(ticks[i]);
+    svg.appendChild(mk("line", { x1: pad.l, x2: pad.l + pw, y1: ty, y2: ty,
+      stroke: "var(--grid)", "stroke-width": 1, fill: "none" }));
+    var tl = mk("text", { x: W - 6, y: ty + 3.5, "text-anchor": "end", fill: "var(--ink3)",
+      "font-size": 10, "font-family": "var(--mono)" });
+    tl.textContent = fmtUsd(ticks[i], ticks[i] >= 1e9 ? 2 : 1);
+    svg.appendChild(tl);
+  }
+  var dline = "", aline = "";
+  for (i = 0; i < series.length; i++){
+    dline += (i ? "L" : "M") + X(i).toFixed(2) + " " + Y(series[i].v).toFixed(2) + " ";
+  }
+  aline = dline + "L" + X(series.length - 1).toFixed(2) + " " + (pad.t + ph) + " L" + pad.l + " " + (pad.t + ph) + " Z";
+  svg.appendChild(mk("path", { d: aline, fill: opt.soft, stroke: "none" }));
+  svg.appendChild(mk("path", { d: dline, fill: "none", stroke: opt.color,
+    "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round",
+    "vector-effect": "non-scaling-stroke" }));
+  svg.appendChild(mk("circle", { cx: X(series.length - 1), cy: Y(series[series.length - 1].v),
+    r: 3.6, fill: opt.color, stroke: "var(--surface)", "stroke-width": 2 }));
+
+  /* x 轴日期 */
+  var fmtD = function(t){ var d = new Date(t);
+    return (d.getMonth() + 1) + "/" + d.getDate(); };
+  var xs = [0, Math.floor((series.length - 1) / 2), series.length - 1];
+  for (i = 0; i < xs.length; i++){
+    var xt = mk("text", { x: clamp(X(xs[i]), pad.l + 12, pad.l + pw - 12), y: H - 6,
+      "text-anchor": i === 0 ? "start" : (i === 2 ? "end" : "middle"),
+      fill: "var(--ink3)", "font-size": 10, "font-family": "var(--mono)" });
+    xt.textContent = fmtD(series[xs[i]].t);
+    svg.appendChild(xt);
+  }
+  /* 准星 */
+  var cross = mk("g", { opacity: 0 });
+  var cl = mk("line", { y1: pad.t, y2: pad.t + ph, stroke: "var(--axis)", "stroke-width": 1, fill: "none" });
+  var cd = mk("circle", { r: 4, fill: opt.color, stroke: "var(--surface)", "stroke-width": 2 });
+  cross.appendChild(cl); cross.appendChild(cd); svg.appendChild(cross);
+  host.appendChild(svg);
+
+  var tip = el("div", "tip");
+  host.appendChild(tip);
+  var move = function(ev){
+    var rect = svg.getBoundingClientRect();
+    var sx = (ev.clientX - rect.left) / rect.width * W;
+    var k = Math.round((sx - pad.l) / pw * (series.length - 1));
+    k = clamp(k, 0, series.length - 1);
+    var pt = series[k], px = X(k), py = Y(pt.v);
+    cl.setAttribute("x1", px); cl.setAttribute("x2", px);
+    cd.setAttribute("cx", px); cd.setAttribute("cy", py);
+    cross.setAttribute("opacity", 1);
+    var prev = k > 0 ? series[Math.max(0, k - 7)].v : null;
+    var ch = prev !== null ? pctChange(pt.v, prev) : null;
+    var d = new Date(pt.t);
+    tip.innerHTML = "<b>" + fmtUsd(pt.v) + "</b><s>" + (d.getFullYear()) + "/" + (d.getMonth() + 1) + "/" + d.getDate() +
+      (ch !== null ? " · 较 7 日前 " + (ch > 0 ? "+" : "") + ch.toFixed(1) + "%" : "") + "</s>";
+    tip.style.left = clamp(px / W * rect.width, 60, rect.width - 60) + "px";
+    tip.style.top = (py / H * rect.height - 8) + "px";
+    tip.style.opacity = 1;
+  };
+  svg.addEventListener("pointermove", move);
+  svg.addEventListener("pointerdown", move);
+  svg.addEventListener("pointerleave", function(){
+    cross.setAttribute("opacity", 0); tip.style.opacity = 0;
+  });
+}
+
+function flowBars(host, rows, unitPct){
+  host.innerHTML = "";
+  if (!rows.length){ host.appendChild(el("div", "empty", "暂无数据")); return; }
+  var max = 0, i;
+  for (i = 0; i < rows.length; i++) max = Math.max(max, Math.abs(rows[i].pct));
+  max = max || 1;
+  for (i = 0; i < rows.length; i++){
+    var r = rows[i], w = Math.abs(r.pct) / max * 48;
+    var line = el("div", "frow");
+    line.appendChild(el("div", "nm", esc(r.name)));
+    var bar = el("div", "fbar");
+    bar.appendChild(el("span", "axis-line"));
+    var fill = el("i", r.pct >= 0 ? "p" : "n");
+    if (r.pct >= 0){ fill.style.left = "50%"; fill.style.width = w + "%"; }
+    else { fill.style.right = "50%"; fill.style.width = w + "%"; }
+    bar.appendChild(fill);
+    line.appendChild(bar);
+    var amt = el("div", "amt " + signCls(r.pct));
+    amt.innerHTML = arrow(r.pct) + " " + (r.pct > 0 ? "+" : "") + r.pct.toFixed(1) + "%";
+    amt.title = fmtUsd(r.tvl) + " 现值";
+    line.appendChild(amt);
+    host.appendChild(line);
+  }
+}
+
+/* ============================================================
+   四、渲染
+   ============================================================ */
+function renderKPI(){
+  var host = $("kpis"); host.innerHTML = "";
+  var k = S.kpi;
+  var tile = function(label, value, meta){
+    var t = el("div", "tile");
+    t.appendChild(el("div", "k", label));
+    t.appendChild(el("div", "v num", value));
+    t.appendChild(el("div", "m", meta));
+    return t;
+  };
+  host.appendChild(tile("全网 TVL", fmtUsd(k.tvl),
+    "7日 " + deltaHTML(k.tvl7) + " · 30日 " + deltaHTML(k.tvl30)));
+  host.appendChild(tile("稳定币供给", fmtUsd(k.stable),
+    "7日 " + deltaHTML(k.stable7) + " · 30日 " + deltaHTML(k.stable30)));
+  host.appendChild(tile("DEX 24h 成交", fmtUsd(k.dex24),
+    k.dexExp === null ? "量能数据缺失" : "7日均量较 30日均量 " + deltaHTML(k.dexExp)));
+  host.appendChild(tile("全网 24h 费用", fmtUsd(k.fee24),
+    "30日 " + fmtUsd(k.fee30, 1) + " · 量能 " + deltaHTML(k.feeExp)));
+
+  var m = $("riskBand");
+  m.innerHTML = "";
+  var r = k.risk;
+  var verdict = r === null ? "数据不足" :
+    (r >= 68 ? "进攻" : r >= 55 ? "偏多" : r >= 45 ? "中性" : r >= 32 ? "偏防守" : "防守");
+  var c1 = el("div");
+  c1.appendChild(el("div", "k", "风险偏好读数"));
+  c1.appendChild(el("div", "head", "<b>" + (r === null ? "—" : Math.round(r)) + "</b><span>" + verdict + "</span>"));
+  m.appendChild(c1);
+  var c2 = el("div");
+  var meter = el("div", "meter");
+  var mk2 = el("i");
+  mk2.style.left = (r === null ? 50 : clamp(r, 2, 98)) + "%";
+  meter.appendChild(mk2);
+  c2.appendChild(meter);
+  var sc = el("div", "meter-scale");
+  sc.innerHTML = "<span>0 防守</span><span>50 中性</span><span>100 进攻</span>";
+  c2.appendChild(sc);
+  m.appendChild(c2);
+  var c3 = el("div");
+  c3.appendChild(el("div", "meter-read", k.riskRead || "正在计算…"));
+  var parts = el("div", "meter-parts");
+  parts.innerHTML = "稳定币30日 " + deltaHTML(k.stable30) + " · TVL30日 " + deltaHTML(k.tvl30) +
+    " · DEX量能 " + deltaHTML(k.dexExp) + " · 费用量能 " + deltaHTML(k.feeExp);
+  c3.appendChild(parts);
+  m.appendChild(c3);
+
+  $("tvlNow").textContent = fmtUsd(k.tvl);
+  $("stableNow").textContent = fmtUsd(k.stable);
+  $("pulseNote").textContent = S.updatedAt ? "更新于 " + S.updatedAt.toLocaleTimeString("zh-CN", { hour12: false }) : "—";
+}
+
+function renderCharts(){
+  areaChart($("tvlChart"), S.tvlSeries.slice(-120),
+    { color: "var(--s1)", soft: "var(--s1-soft)", label: "全网 TVL 近 120 天走势" });
+  areaChart($("stableChart"), S.stableSeries.slice(-120),
+    { color: "var(--s2)", soft: "var(--s2-soft)", label: "稳定币总供给近 120 天走势" });
+}
+
+function renderFlows(){
+  var chainAgg = {}, catAgg = {}, i, p, k, v, a;
+  for (i = 0; i < S.protos.length; i++){
+    p = S.protos[i];
+    for (k in p.chainTvls){
+      v = p.chainTvls[k];
+      var pv = v.prev7;
+      if (pv === null){
+        /* 数据源没给链级上周快照时，按协议整体 7 日变化折算该链份额 */
+        if (p.d7 === null) continue;
+        pv = v.tvl / (1 + p.d7 / 100);
+        if (!isFinite(pv)) continue;
+      }
+      a = chainAgg[k] || (chainAgg[k] = { tvl: 0, prev: 0 });
+      a.tvl += v.tvl; a.prev += pv;
+    }
+    if (p.d7 !== null && p.tvl > 0){
+      a = catAgg[p.category] || (catAgg[p.category] = { tvl: 0, prev: 0 });
+      var prev = p.tvl / (1 + p.d7 / 100);
+      if (isFinite(prev)){ a.tvl += p.tvl; a.prev += prev; }
+    }
+  }
+  var toRows = function(agg, minTvl){
+    var out = [], key;
+    for (key in agg){
+      if (agg[key].tvl < minTvl) continue;
+      var pct = pctChange(agg[key].tvl, agg[key].prev);
+      if (pct === null || Math.abs(pct) > 400) continue;
+      out.push({ name: key, pct: pct, tvl: agg[key].tvl });
+    }
+    out.sort(function(x, y){ return y.pct - x.pct; });
+    return out;
+  };
+  var chains = toRows(chainAgg, 3e8), cats = toRows(catAgg, 2e8);
+  var pick = function(arr, n){
+    if (arr.length <= n * 2) return arr;
+    return arr.slice(0, n).concat(arr.slice(-n));
+  };
+  flowBars($("chainFlowUp"), pick(chains, 6));
+  flowBars($("catFlow"), pick(cats, 6));
+}
+
+var COLS = [
+  { k: "star",  t: "",        sort: null },
+  { k: "rank",  t: "#",       sort: null },
+  { k: "name",  t: "协议",     sort: null, cls: "l" },
+  { k: "tvl",   t: "TVL",     sort: "tvl" },
+  { k: "d1",    t: "1D",      sort: "d1" },
+  { k: "d7",    t: "7D",      sort: "d7" },
+  { k: "d30",   t: "30D",     sort: "d30" },
+  { k: "feeApr",t: "年化费率",  sort: "feeApr" },
+  { k: "fees30",t: "30日费用", sort: "fees30" },
+  { k: "pf",    t: "P/F",     sort: "pf" },
+  { k: "mcapTvl", t: "MC/TVL", sort: "mcapTvl" },
+  { k: "score", t: "综合分",   sort: "score" },
+  { k: "tags",  t: "信号",     sort: null }
+];
+
+function currentRows(){
+  var q = ($("q").value || "").trim().toLowerCase();
+  var chain = $("chainFilter").value, cat = $("catFilter").value;
+  var minTvl = parseFloat($("minTvl").value) || 0;
+  var wOnly = $("watchOnly").getAttribute("aria-pressed") === "true";
+  var ws = watchSet(), out = [], i, p, ok;
+  for (i = 0; i < S.protos.length; i++){
+    p = S.protos[i];
+    if (p.tvl < minTvl) continue;
+    if (chain && p.chains.indexOf(chain) < 0) continue;
+    if (cat && p.category !== cat) continue;
+    if (wOnly && !ws[p.name]) continue;
+    if (q){
+      ok = p.name.toLowerCase().indexOf(q) >= 0 ||
+           (p.symbol && p.symbol.toLowerCase().indexOf(q) >= 0) ||
+           p.category.toLowerCase().indexOf(q) >= 0;
+      if (!ok) continue;
+    }
+    if (S.preset === "early"){
+      if (p.tvl < 1e7 || p.tvl > 6e8) continue;
+      if (p.mcap !== null && p.mcap > 8e8) continue;
+    }
+    if (S.preset === "drain" && (p.d7 === null || p.d7 >= 0)) continue;
+    p.score = composite(p, S.preset);
+    out.push(p);
+  }
+  var key = S.sortKey, dir = S.sortDir;
+  out.sort(function(a, b){
+    var x = a[key], y = b[key];
+    if (x === null || x === undefined) return 1;
+    if (y === null || y === undefined) return -1;
+    return (x - y) * dir;
+  });
+  return out;
+}
+
+function renderRadarHead(){
+  var tr = $("radarHead"); tr.innerHTML = "";
+  for (var i = 0; i < COLS.length; i++){
+    var c = COLS[i], th = el("th", c.cls || "", esc(c.t));
+    if (c.sort){
+      th.dataset.sort = c.sort;
+      th.setAttribute("tabindex", "0");
+      if (S.sortKey === c.sort) th.setAttribute("aria-sort", S.sortDir < 0 ? "descending" : "ascending");
+      th.title = "点击按此列排序";
+      th.innerHTML = esc(c.t) + (S.sortKey === c.sort ? (S.sortDir < 0 ? " ↓" : " ↑") : "");
+    } else {
+      th.removeAttribute("tabindex");
+      th.style.cursor = "default";
+    }
+    tr.appendChild(th);
+  }
+}
+
+function renderRadar(){
+  renderRadarHead();
+  var body = $("radarBody"), rows = currentRows(), ws = watchSet();
+  body.innerHTML = "";
+  $("radarNote").textContent = presetById(S.preset).hint + " · 命中 " + rows.length + " 个";
+  if (!rows.length){
+    var tr0 = el("tr"), td0 = el("td", "", '<div class="empty">没有符合条件的协议，放宽筛选试试。</div>');
+    td0.colSpan = COLS.length; tr0.appendChild(td0); body.appendChild(tr0);
+    return;
+  }
+  var show = rows.slice(0, 60), i;
+  for (i = 0; i < show.length; i++){
+    var p = show[i], tr = el("tr", "row");
+    tr.dataset.name = p.name;
+    var chips = "", j;
+    for (j = 0; j < p.tags.length; j++)
+      chips += '<span class="chip ' + p.tags[j].k + '">' + esc(p.tags[j].s) + "</span>";
+    var starOn = ws[p.name] ? "true" : "false";
+    var logo = p.logo ? '<img src="' + esc(p.logo) + '" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">'
+                      : '<img alt="" style="visibility:hidden">';
+    tr.innerHTML =
+      '<td class="l"><button class="star" aria-pressed="' + starOn + '" aria-label="加入自选">' + (ws[p.name] ? "★" : "☆") + "</button></td>" +
+      '<td class="num" style="color:var(--ink3)">' + (i + 1) + "</td>" +
+      '<td class="l"><div class="pname">' + logo + '<div class="t"><b>' + esc(p.name) + "</b><span>" +
+        esc(p.category) + " · " + esc(p.chains.slice(0, 2).join("/")) + (p.chains.length > 2 ? " +" + (p.chains.length - 2) : "") + "</span></div></div></td>" +
+      '<td class="num">' + fmtUsd(p.tvl) + "</td>" +
+      "<td>" + deltaHTML(p.d1) + "</td>" +
+      "<td>" + deltaHTML(p.d7) + "</td>" +
+      "<td>" + deltaHTML(p.d30) + "</td>" +
+      '<td class="num">' + fmtApr(p.feeApr) + "</td>" +
+      '<td class="num">' + (p.fees30 === null ? "—" : (p.feeKind !== "exact" ? "≈" : "") + fmtUsd(p.fees30, 1)) + "</td>" +
+      '<td class="num">' + fmtX(p.pf) + "</td>" +
+      '<td class="num">' + (p.mcapTvl === null ? "—" : p.mcapTvl.toFixed(2) + "x") + "</td>" +
+      '<td><span class="score"><span class="sbar"><i style="width:' + (p.score === null ? 0 : p.score.toFixed(0)) + '%"></i></span><b>' +
+        (p.score === null ? "—" : p.score.toFixed(0)) + "</b></span></td>" +
+      '<td><span class="chips">' + (chips || '<span class="chip n">无信号</span>') + "</span></td>";
+    body.appendChild(tr);
+    if (S.expanded[p.name]) body.appendChild(detailRow(p));
+  }
+  if (rows.length > 60){
+    var tr2 = el("tr"), td2 = el("td", "",
+      '<div class="empty">已显示前 60 个，共命中 ' + rows.length + " 个 —— 用上面的筛选条件缩小范围。</div>");
+    td2.colSpan = COLS.length; tr2.appendChild(td2); body.appendChild(tr2);
+  }
+}
+
+function detailRow(p){
+  var tr = el("tr", "detail"), td = el("td");
+  td.colSpan = COLS.length;
+  var sub = function(label, v){
+    return '<div class="sub"><span>' + label + '</span><span class="track"><i style="width:' +
+      (v === null ? 0 : v.toFixed(0)) + '%"></i></span><span>' + (v === null ? "无数据" : v.toFixed(0)) + "</span></div>";
+  };
+  var chainList = [], k;
+  for (k in p.chainTvls) chainList.push({ n: k, v: p.chainTvls[k].tvl });
+  chainList.sort(function(a, b){ return b.v - a.v; });
+  var chainTxt = chainList.slice(0, 5).map(function(c){
+    return esc(c.n) + " " + fmtUsd(c.v, 1); }).join(" · ") || "—";
+  td.innerHTML =
+    '<div class="detail-in">' +
+      '<div><p class="take">' + p.take + "</p>" +
+        '<div class="kv">' +
+          "<span><b>TVL 分布</b> " + chainTxt + "</span>" +
+          (p.vol24 !== null ? "<span><b>24h 成交</b> " + fmtUsd(p.vol24) + "</span>" : "") +
+          (p.volTvl !== null ? "<span><b>日均换手/TVL</b> " + (p.volTvl * 100).toFixed(1) + "%</span>" : "") +
+          (p.rev30 !== null ? "<span><b>30日协议收入</b> " + fmtUsd(p.rev30) + "</span>" : "") +
+          (p.mcap !== null ? "<span><b>市值</b> " + fmtUsd(p.mcap) + "</span>" : "<span><b>市值</b> 未收录</span>") +
+          (p.symbol ? "<span><b>代币</b> " + esc(p.symbol) + "</span>" : "") +
+        "</div>" +
+        (p.feeKind && p.feeKind !== "exact"
+          ? '<div class="kv"><span style="color:var(--amber)">⚠ 费用按' +
+            (p.feeKind === "parent" ? "母协议" : "同名近似") + '口径归集，含多版本合计，比率仅供参考</span></div>' : "") +
+        '<div class="kv"><span><a href="https://defillama.com/protocol/' + esc(p.slug) +
+          '" target="_blank" rel="noopener">在 DefiLlama 查看完整历史 →</a></span></div>' +
+      "</div>" +
+      '<div class="subs">' +
+        '<div class="eyebrow" style="margin-bottom:2px">分项得分</div>' +
+        sub("动量", p.sM) + sub("现金流", p.sR) + sub("估值", p.sV) + sub("健康度", p.sH) +
+        '<div class="kv" style="margin-top:4px"><span>当前视角「' + esc(presetById(S.preset).name) +
+          '」加权后综合分 <b>' + (p.score === null ? "—" : p.score.toFixed(0)) + "</b></span></div>" +
+      "</div>" +
+    "</div>";
+  tr.appendChild(td);
+  return tr;
+}
+
+function renderCash(){
+  var body = $("cashBody");
+  body.innerHTML = "";
+  var rows = S.feeIdx ? S.feeIdx.rows.slice() : [];
+  if (!rows.length){
+    var tr0 = el("tr"), td0 = el("td", "", '<div class="empty">费用数据源暂时不可用。</div>');
+    td0.colSpan = 8; tr0.appendChild(td0); body.appendChild(tr0); return;
+  }
+  rows.sort(function(a, b){ return (num(b.total30d) || 0) - (num(a.total30d) || 0); });
+  rows = rows.slice(0, 25);
+  var i, r, p, rev, f30, apr, pf, ret;
+  for (i = 0; i < rows.length; i++){
+    r = rows[i];
+    p = S.protoIndex[String(r.defillamaId)] || S.protoByName[norm(r.name || r.displayName)] || null;
+    rev = (S.revIdx.byId[String(r.defillamaId)] || S.revIdx.byName[norm(r.name || r.displayName)] || null);
+    f30 = num(r.total30d);
+    apr = (p && f30 !== null && p.tvl > 0) ? f30 * YEAR_OVER_30D / p.tvl * 100 : null;
+    pf  = (p && p.mcap !== null && f30) ? p.mcap / (f30 * YEAR_OVER_30D) : null;
+    ret = (rev && f30) ? (num(rev.total30d) || 0) / f30 * 100 : null;
+    var tr = el("tr");
+    tr.innerHTML =
+      '<td class="l"><div class="pname"><div class="t"><b>' + esc(r.displayName || r.name) + "</b><span>" +
+        esc(r.category || "—") + "</span></div></div></td>" +
+      '<td class="num">' + fmtUsd(f30, 1) + "</td>" +
+      '<td class="num">' + fmtUsd(r.total7d, 1) + "</td>" +
+      '<td class="num">' + fmtUsd(r.total24h, 1) + "</td>" +
+      "<td>" + deltaHTML(r.change_1m) + "</td>" +
+      '<td class="num">' + (ret === null ? "—" : fmtPct(ret, 0)) + "</td>" +
+      '<td class="num">' + fmtApr(apr) + "</td>" +
+      '<td class="num">' + fmtX(pf) + "</td>";
+    body.appendChild(tr);
+  }
+}
+
+/* ---------- 收益池 ---------- */
+var YIELD_TABS = [
+  { id:"stable", name:"稳定币仓位", hint:"无常损失风险为零或极低的美元收益" },
+  { id:"blue",   name:"蓝筹主流",   hint:"大池子、单边敞口，能进能出" },
+  { id:"degen",  name:"高收益高风险", hint:"看得懂再碰，注意补贴占比" }
+];
+function poolFilter(list, tab, chain){
+  var out = [], i, p, apy;
+  for (i = 0; i < list.length; i++){
+    p = list[i];
+    apy = num(p.apy);
+    if (apy === null || apy <= 0 || apy > 2000) continue;
+    if (p.outlier) continue;
+    if (num(p.tvlUsd) === null || p.tvlUsd < 1e6) continue;
+    if (chain && p.chain !== chain) continue;
+    if (tab === "stable"){
+      if (!p.stablecoin) continue;
+      if (p.ilRisk === "yes") continue;
+      if (apy < 2 || apy > 60) continue;
+    } else if (tab === "blue"){
+      if (p.stablecoin) continue;
+      if (p.tvlUsd < 2e7) continue;
+      if (apy < 2 || apy > 80) continue;
+    } else {
+      if (apy < 25) continue;
+      if (p.tvlUsd < 2e6) continue;
+    }
+    out.push(p);
+  }
+  out.sort(function(a, b){
+    if (tab === "degen") return num(b.apy) - num(a.apy);
+    var sa = (num(a.apyBase) || 0) * 1.35 + (num(a.apyReward) || 0);
+    var sb = (num(b.apyBase) || 0) * 1.35 + (num(b.apyReward) || 0);
+    return sb - sa;
+  });
+  return out.slice(0, 24);
+}
+function renderPools(){
+  var host = $("poolArea");
+  if (S.poolsLoading){ host.innerHTML = '<div class="empty"><span class="spin"></span> 正在拉取全网收益池（数据包约 10MB，请稍候）…</div>'; return; }
+  if (!S.pools){ host.innerHTML = '<div class="empty">点「加载收益池数据」拉取全网约 1.5 万个收益池并按老玩家的口径过滤排序。</div>'; return; }
+  var list = poolFilter(S.pools, S.yieldTab, $("poolChain").value);
+  host.innerHTML = "";
+  if (!list.length){ host.appendChild(el("div", "empty", "当前条件下没有符合门槛的池子。")); return; }
+  var grid = el("div", "pool-grid"), i;
+  for (i = 0; i < list.length; i++){
+    var p = list[i], apy = num(p.apy) || 0;
+    var base = num(p.apyBase) || 0, rew = num(p.apyReward) || 0;
+    var tot = base + rew || apy;
+    var subsidy = tot > 0 ? rew / tot * 100 : null;
+    var card = el("div", "pool");
+    var chips = "";
+    if (p.stablecoin) chips += '<span class="chip n">稳定币</span>';
+    if (p.ilRisk === "yes") chips += '<span class="chip a">⚠ 有无常损失</span>';
+    if (p.exposure === "single") chips += '<span class="chip n">单边敞口</span>';
+    if (subsidy !== null && subsidy >= 60) chips += '<span class="chip r">补贴占 ' + subsidy.toFixed(0) + "%</span>";
+    else if (subsidy !== null && subsidy <= 15 && rew >= 0) chips += '<span class="chip g">真实收益为主</span>';
+    if (p.predictions && p.predictions.predictedClass){
+      var pc = String(p.predictions.predictedClass);
+      chips += '<span class="chip ' + (pc.indexOf("Down") >= 0 ? "a" : "g") + '">模型：' +
+        (pc.indexOf("Down") >= 0 ? "APY 或走低" : "APY 或持稳") + "</span>";
+    }
+    if (num(p.apyPct7D) !== null) chips += '<span class="chip n">7日 APY ' +
+      (p.apyPct7D > 0 ? "+" : "") + num(p.apyPct7D).toFixed(1) + "pp</span>";
+    card.innerHTML =
+      '<div class="top"><div style="min-width:0"><div class="sym">' + esc(p.symbol || "—") + "</div>" +
+        '<div class="proj">' + esc(p.project || "") + " · " + esc(p.chain || "") +
+        (p.poolMeta ? " · " + esc(p.poolMeta) : "") + "</div></div>" +
+        '<div class="apy"><b>' + apy.toFixed(1) + "%</b><span>APY</span></div></div>" +
+      '<div class="split"><i class="base" style="width:' + (tot > 0 ? base / tot * 100 : 100).toFixed(1) + '%"></i>' +
+        '<i class="rew" style="width:' + (tot > 0 ? rew / tot * 100 : 0).toFixed(1) + '%"></i></div>' +
+      '<div class="legend2"><span><span class="swatch" style="background:var(--s1);display:inline-block"></span> 真实收益 ' +
+        base.toFixed(1) + "%</span><span><span class=\"swatch\" style=\"background:var(--s2);display:inline-block\"></span> 代币补贴 " +
+        rew.toFixed(1) + "%</span><span>TVL " + fmtUsd(p.tvlUsd, 1) + "</span></div>" +
+      '<div class="foot">' + chips + "</div>";
+    grid.appendChild(card);
+  }
+  host.appendChild(grid);
+  var tip = el("div", "msg");
+  tip.style.marginTop = "10px";
+  tip.innerHTML = "<b>怎么用这张表：</b>蓝色段是协议真实产生的收益（手续费、借贷利差），橙色段是代币排放。" +
+    "橙色越长，这个 APY 越接近于「先到先得的补贴」，你要赌的是能不能在排放衰减前离场。" +
+    "已过滤 TVL 低于 $1M 和被 DefiLlama 标记为异常值的池子，但<b>过滤不等于安全</b> —— 合约风险、稳定币脱锚、预言机故障都不在这张表里。";
+  host.appendChild(tip);
+}
+
+/* ============================================================
+   五、装载与调度
+   ============================================================ */
+function setStatus(kind, text){
+  $("statusDot").className = "dot " + kind + (kind === "ok" ? " live" : "");
+  $("statusText").textContent = text;
+}
+
+function fillSelect(sel, values, keep){
+  var cur = keep || sel.value, i;
+  while (sel.options.length > 1) sel.remove(1);
+  for (i = 0; i < values.length; i++){
+    var o = document.createElement("option");
+    o.value = values[i]; o.textContent = values[i];
+    sel.appendChild(o);
+  }
+  if (cur) sel.value = cur;
+}
+
+function computeKPI(dexTotal, feeTotal){
+  var k = {};
+  var tvlS = S.tvlSeries, stS = S.stableSeries;
+  k.tvl = tvlS.length ? tvlS[tvlS.length - 1].v : null;
+  k.tvl7 = pctChange(k.tvl, agoValue(tvlS, 7));
+  k.tvl30 = pctChange(k.tvl, agoValue(tvlS, 30));
+  k.stable = stS.length ? stS[stS.length - 1].v : null;
+  k.stable7 = pctChange(k.stable, agoValue(stS, 7));
+  k.stable30 = pctChange(k.stable, agoValue(stS, 30));
+  k.dex24 = dexTotal ? num(dexTotal.total24h) : null;
+  var d7 = dexTotal ? num(dexTotal.total7d) : null, d30 = dexTotal ? num(dexTotal.total30d) : null;
+  k.dexExp = (d7 && d30) ? ((d7 / 7) / (d30 / 30) - 1) * 100 : null;
+  k.fee24 = feeTotal ? num(feeTotal.total24h) : null;
+  k.fee30 = feeTotal ? num(feeTotal.total30d) : null;
+  var f7 = feeTotal ? num(feeTotal.total7d) : null;
+  k.feeExp = (f7 && k.fee30) ? ((f7 / 7) / (k.fee30 / 30) - 1) * 100 : null;
+
+  k.risk = wavg([
+    [scSigned(k.stable30, 6), 0.30],
+    [scSigned(k.tvl30, 18), 0.30],
+    [scSigned(k.dexExp, 22), 0.22],
+    [scSigned(k.feeExp, 22), 0.18]
+  ]);
+  /* 读数：点名当下最强的多空驱动，而不是给个分数了事 */
+  var reads = [];
+  if (k.stable30 !== null){
+    reads.push(k.stable30 > 1.5
+      ? "稳定币 30 日净增 " + k.stable30.toFixed(1) + "%，有新钱在进场，仓位可以更主动。"
+      : (k.stable30 < -1.5
+        ? "稳定币 30 日净减 " + Math.abs(k.stable30).toFixed(1) + "%，场内弹药在流失，追高的性价比很低。"
+        : "稳定币供给基本持平，增量资金没来，存量博弈为主。"));
+  }
+  if (k.tvl30 !== null && k.stable30 !== null && k.tvl30 > 8 && k.stable30 < 1)
+    reads.push("注意背离：TVL 涨了 " + k.tvl30.toFixed(1) + "% 但稳定币没跟上，这一轮多半是币价拉动的虚胖。");
+  if (k.dexExp !== null)
+    reads.push(k.dexExp > 5
+      ? "DEX 7 日均量较月均放大 " + k.dexExp.toFixed(0) + "%，量能在扩张。"
+      : (k.dexExp < -5 ? "DEX 7 日均量较月均萎缩 " + Math.abs(k.dexExp).toFixed(0) + "%，任何新高叙事都要打折。"
+         : "DEX 量能与月均持平。"));
+  k.riskRead = reads.slice(0, 2).join(" ");
+  return k;
+}
+
+function load(){
+  if (S.loading) return;
+  S.loading = true;
+  setStatus("warn", "拉取数据中…");
+  $("refresh").innerHTML = '<span class="spin"></span> 刷新中';
+  var jobs = [
+    grab(EP.lite, "protocols"), grab(EP.fees, "fees"), grab(EP.revenue, "revenue"),
+    grab(EP.dexs, "dexs"), grab(EP.tvlHist, "tvl"), grab(EP.stables, "stablecoins"),
+    grab(EP.chains, "chains")
+  ];
+  Promise.all(jobs).then(function(res){
+    var by = {}, i, fails = [];
+    for (i = 0; i < res.length; i++){
+      by[res[i].label] = res[i];
+      if (!res[i].ok) fails.push(res[i].label);
+    }
+    var pro = by.protocols.ok ? by.protocols.data : null;
+    var next = (!pro || !(pro.protocols && pro.protocols.length))
+      ? grab(EP.protos, "protocols-legacy") : Promise.resolve(null);
+    return next.then(function(legacy){
+      if (legacy && legacy.ok) pro = { protocols: null, legacy: legacy.data };
+      var protos = normProtocols(
+        pro && pro.protocols ? pro : null,
+        pro && pro.legacy ? pro.legacy : (Array.isArray(pro) ? pro : null));
+      if (!protos.length && !fails.length) fails.push("protocols");
+      S.feeIdx = indexOverview(by.fees.ok ? by.fees.data : null);
+      S.revIdx = indexOverview(by.revenue.ok ? by.revenue.data : null);
+      S.dexIdx = indexOverview(by.dexs.ok ? by.dexs.data : null);
+      S.protos = enrich(protos, S.feeIdx, S.revIdx, S.dexIdx);
+      S.protoIndex = {}; S.protoByName = {};
+      for (i = 0; i < S.protos.length; i++){
+        if (S.protos[i].id) S.protoIndex[S.protos[i].id] = S.protos[i];
+        S.protoByName[norm(S.protos[i].name)] = S.protos[i];
+      }
+      S.tvlSeries = seriesFrom(by.tvl.ok ? by.tvl.data : [], function(r){ return num(r.tvl); });
+      S.stableSeries = seriesFrom(by.stablecoins.ok ? by.stablecoins.data : [], pickPegged);
+      S.kpi = computeKPI(by.dexs.ok ? by.dexs.data : null, by.fees.ok ? by.fees.data : null);
+
+      var chainNames = {}, catNames = {}, j;
+      for (i = 0; i < S.protos.length; i++){
+        for (j = 0; j < S.protos[i].chains.length; j++) chainNames[S.protos[i].chains[j]] = 1;
+        catNames[S.protos[i].category] = 1;
+      }
+      var cl = Object.keys(chainNames).sort(), cg = Object.keys(catNames).sort();
+      fillSelect($("chainFilter"), cl.slice(0, 120));
+      fillSelect($("catFilter"), cg);
+      S.updatedAt = new Date();
+      S.errors = fails;
+      renderAll();
+      var okCount = 7 - fails.length;
+      if (!S.protos.length){
+        setStatus("bad", "数据源不可达");
+        showBlocked();
+      } else if (fails.length){
+        setStatus("warn", okCount + "/7 数据源正常 · " + S.updatedAt.toLocaleTimeString("zh-CN", { hour12: false }));
+      } else {
+        setStatus("ok", "数据实时 · " + S.updatedAt.toLocaleTimeString("zh-CN", { hour12: false }));
+      }
+    });
+  }).catch(function(e){
+    setStatus("bad", "拉取失败");
+    showBlocked(String(e && e.message || e));
+  }).then(function(){
+    S.loading = false;
+    $("refresh").textContent = "刷新";
+    resetTimer();
+  });
+}
+
+function showBlocked(detail){
+  var host = $("kpis");
+  host.innerHTML = "";
+  var m = el("div", "msg");
+  m.style.gridColumn = "1 / -1";
+  m.innerHTML = "<b>拿不到数据。</b>本页所有数字都由你的浏览器直接向 DefiLlama 请求，常见原因有三个：" +
+    "① 当前网络或企业代理拦截了 <code>api.llama.fi</code>；② 浏览器插件拦截了跨域请求；③ DefiLlama 临时限流，等一两分钟再点刷新。" +
+    "如果你是在受限的嵌入环境里打开这个页面，把 <code>index.html</code> 下载到本地用浏览器直接打开即可恢复。" +
+    (detail ? '<br><span style="color:var(--ink3)">技术细节：' + esc(detail) + "</span>" : "");
+  host.appendChild(m);
+}
+
+function renderAll(){
+  if (!S.protos.length && !S.tvlSeries.length) return;
+  renderKPI();
+  renderCharts();
+  renderRadar();
+  renderFlows();
+  renderCash();
+  if (S.pools){
+    var chains = {}, i;
+    for (i = 0; i < S.pools.length; i++) chains[S.pools[i].chain] = 1;
+    fillSelect($("poolChain"), Object.keys(chains).sort());
+    renderPools();
+  }
+}
+
+function loadPools(){
+  if (S.poolsLoading) return;
+  S.poolsLoading = true;
+  $("yieldNote").textContent = "拉取中…";
+  renderPools();
+  grab(EP.pools, "pools").then(function(r){
+    S.poolsLoading = false;
+    if (!r.ok || !r.data){
+      S.pools = null;
+      $("yieldNote").textContent = "加载失败";
+      $("poolArea").innerHTML = '<div class="empty">收益池数据拉取失败，稍后再试。</div>';
+      return;
+    }
+    S.pools = rowsOf(r.data);
+    $("yieldNote").textContent = "共 " + S.pools.length + " 个池子 · " + new Date().toLocaleTimeString("zh-CN", { hour12: false });
+    var chains = {}, i;
+    for (i = 0; i < S.pools.length; i++) chains[S.pools[i].chain] = 1;
+    fillSelect($("poolChain"), Object.keys(chains).sort());
+    renderPools();
+  });
+}
+
+/* ---------- 自动刷新 ---------- */
+var nextAt = 0;
+function resetTimer(){
+  var iv = parseInt($("interval").value, 10) || 0;
+  nextAt = iv ? Date.now() + iv : 0;
+}
+setInterval(function(){
+  var cd = $("countdown");
+  if (!nextAt){ cd.textContent = "手动"; return; }
+  var left = Math.max(0, nextAt - Date.now());
+  var m = Math.floor(left / 60000), s = Math.floor(left % 60000 / 1000);
+  cd.textContent = (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
+  if (left <= 0 && !S.loading && !document.hidden) load();
+}, 1000);
+var rzT = null;
+window.addEventListener("resize", function(){
+  clearTimeout(rzT);
+  rzT = setTimeout(function(){ if (S.tvlSeries.length) renderCharts(); }, 220);
+});
+document.addEventListener("visibilitychange", function(){
+  if (!document.hidden && nextAt && Date.now() > nextAt && !S.loading) load();
+});
+
+/* ---------- 事件 ---------- */
+function bind(){
+  $("refresh").addEventListener("click", load);
+  $("interval").addEventListener("change", function(){ resetTimer(); store.set("interval", this.value); });
+  $("loadPools").addEventListener("click", loadPools);
+  $("poolChain").addEventListener("change", renderPools);
+
+  $("theme").addEventListener("click", function(){
+    var dark = document.documentElement.getAttribute("data-theme") === "dark";
+    var next = dark ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    this.setAttribute("aria-pressed", next === "dark" ? "true" : "false");
+    this.textContent = next === "dark" ? "浅色" : "深色";
+    store.set("theme", next);
+    renderCharts();
+  });
+  $("deltaMode").addEventListener("click", function(){
+    var cn = document.documentElement.getAttribute("data-delta") === "cn";
+    var next = cn ? "crypto" : "cn";
+    document.documentElement.setAttribute("data-delta", next);
+    this.setAttribute("aria-pressed", next === "cn" ? "true" : "false");
+    this.textContent = next === "cn" ? "红涨绿跌" : "绿涨红跌";
+    store.set("delta", next);
+  });
+
+  var deb = null;
+  $("q").addEventListener("input", function(){
+    clearTimeout(deb); deb = setTimeout(renderRadar, 180);
+  });
+  $("chainFilter").addEventListener("change", renderRadar);
+  $("catFilter").addEventListener("change", renderRadar);
+  $("minTvl").addEventListener("change", renderRadar);
+  $("watchOnly").addEventListener("click", function(){
+    var on = this.getAttribute("aria-pressed") === "true";
+    this.setAttribute("aria-pressed", on ? "false" : "true");
+    renderRadar();
+  });
+
+  $("radarHead").addEventListener("click", function(ev){
+    var th = ev.target.closest("th");
+    if (!th || !th.dataset.sort) return;
+    if (S.sortKey === th.dataset.sort) S.sortDir *= -1;
+    else { S.sortKey = th.dataset.sort; S.sortDir = -1; }
+    renderRadar();
+  });
+  $("radarHead").addEventListener("keydown", function(ev){
+    if (ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); ev.target.click(); }
+  });
+
+  $("radarBody").addEventListener("click", function(ev){
+    var star = ev.target.closest(".star");
+    var tr = ev.target.closest("tr.row");
+    if (!tr) return;
+    var name = tr.dataset.name;
+    if (star){
+      ev.stopPropagation();
+      var k = S.watch.indexOf(name);
+      if (k >= 0) S.watch.splice(k, 1); else S.watch.push(name);
+      store.set("watch", S.watch);
+      renderRadar();
+      return;
+    }
+    S.expanded[name] = !S.expanded[name];
+    renderRadar();
+  });
+}
+
+function buildTabs(){
+  var host = $("presets"), i;
+  for (i = 0; i < PRESETS.length; i++){
+    (function(p){
+      var b = el("button", "tab", esc(p.name));
+      b.setAttribute("role", "tab");
+      b.setAttribute("aria-selected", p.id === S.preset ? "true" : "false");
+      b.addEventListener("click", function(){
+        S.preset = p.id;
+        S.sortKey = p.id === "drain" ? "d7" : "score";
+        S.sortDir = p.id === "drain" ? 1 : -1;
+        S.expanded = {};
+        var kids = host.children, j;
+        for (j = 0; j < kids.length; j++) kids[j].setAttribute("aria-selected", "false");
+        b.setAttribute("aria-selected", "true");
+        renderRadar();
+      });
+      host.appendChild(b);
+    })(PRESETS[i]);
+  }
+  var yh = $("yieldTabs");
+  for (i = 0; i < YIELD_TABS.length; i++){
+    (function(t){
+      var b = el("button", "tab", esc(t.name));
+      b.setAttribute("role", "tab");
+      b.setAttribute("aria-selected", t.id === S.yieldTab ? "true" : "false");
+      b.title = t.hint;
+      b.addEventListener("click", function(){
+        S.yieldTab = t.id;
+        var kids = yh.children, j;
+        for (j = 0; j < kids.length; j++) kids[j].setAttribute("aria-selected", "false");
+        b.setAttribute("aria-selected", "true");
+        renderPools();
+      });
+      yh.appendChild(b);
+    })(YIELD_TABS[i]);
+  }
+}
+
+function skeleton(){
+  var host = $("kpis"), i;
+  for (i = 0; i < 4; i++){
+    var t = el("div", "tile");
+    t.appendChild(el("div", "k", ["全网 TVL", "稳定币供给", "DEX 24h 成交", "全网 24h 费用"][i]));
+    t.appendChild(el("div", "v num skel", "$0.00B"));
+    t.appendChild(el("div", "m skel", "加载中"));
+    host.appendChild(t);
+  }
+  var m = $("riskBand");
+  var c1 = el("div");
+  c1.appendChild(el("div", "k", "风险偏好读数"));
+  c1.appendChild(el("div", "head skel", "<b>00</b><span>计算中</span>"));
+  m.appendChild(c1);
+  var c2 = el("div"); c2.appendChild(el("div", "meter")); m.appendChild(c2);
+  m.appendChild(el("div", "meter-read skel", "正在根据稳定币供给、TVL 动量与量能变化，判断当前该进攻还是防守…"));
+  $("tvlChart").innerHTML = '<div class="empty"><span class="spin"></span> 加载中</div>';
+  $("stableChart").innerHTML = '<div class="empty"><span class="spin"></span> 加载中</div>';
+  var body = $("radarBody"), tr = el("tr"), td = el("td", "", '<div class="empty"><span class="spin"></span> 正在拉取全网协议数据并计算评分…</div>');
+  td.colSpan = COLS.length; tr.appendChild(td); body.appendChild(tr);
+}
+
+/* ---------- 启动 ---------- */
+function boot(){
+  var th = store.get("theme", null);
+  if (th){
+    document.documentElement.setAttribute("data-theme", th);
+    $("theme").setAttribute("aria-pressed", th === "dark" ? "true" : "false");
+    $("theme").textContent = th === "dark" ? "浅色" : "深色";
+  }
+  var dm = store.get("delta", "crypto");
+  document.documentElement.setAttribute("data-delta", dm);
+  $("deltaMode").setAttribute("aria-pressed", dm === "cn" ? "true" : "false");
+  $("deltaMode").textContent = dm === "cn" ? "红涨绿跌" : "绿涨红跌";
+  var iv = store.get("interval", null);
+  if (iv) $("interval").value = iv;
+
+  buildTabs();
+  renderRadarHead();
+  skeleton();
+  bind();
+  resetTimer();
+  load();
+}
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+else boot();
+})();
+</script>
